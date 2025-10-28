@@ -17,6 +17,9 @@
 #include "data.h"
 #include "constants/songs.h"
 
+// Added to access FlagSet for setting nuzlocke mode
+#include "event_data.h"
+
 #define INTRO_SPECIES SPECIES_NIDORAN_F
 
 enum
@@ -106,11 +109,23 @@ static void CreateFadeOutTask(u8, u8);
 static void PrintNameChoiceOptions(u8, u8);
 static void GetDefaultName(u8, u8);
 
+// New for asking soul link and nuzlocke questions
+static void Task_OakSpeech_AskNuzlocke(u8);
+static void Task_OakSpeech_ProcessNuzlockeChoice(u8);
+static void Task_OakSpeech_AskSoulLink(u8);
+static void Task_OakSpeech_ProcessSoulLinkChoice(u8);
+static void Task_OakSpeech_WaitForRivalConfirmText(u8);
+
 extern const u8 gText_Controls[];
 extern const u8 gText_ABUTTONNext[];
 extern const u8 gText_ABUTTONNext_BBUTTONBack[];
 extern const u8 gText_Boy[];
 extern const u8 gText_Girl[];
+
+// For Nuzlocke + Soul-link
+extern const u8 gOakSpeech_Text_NuzlockeInfo[];
+extern const u8 gOakSpeech_Text_SoulLinkInfo[];
+
 extern const struct OamData gOamData_AffineOff_ObjBlend_32x32;
 extern const struct OamData gOamData_AffineOff_ObjNormal_32x32;
 extern const struct OamData gOamData_AffineOff_ObjNormal_32x16;
@@ -1464,23 +1479,26 @@ static void Task_OakSpeech_ConfirmName(u8 taskId)
     {
         if (tNameNotConfirmed == TRUE)
         {
+            // Print the confirmation question ("So, your name is PLAYER?" or "...Err, was it RIVAL?")
             if (sOakSpeechResources->hasPlayerBeenNamed == FALSE)
                 StringExpandPlaceholders(gStringVar4, gOakSpeech_Text_SoYourNameIsPlayer);
             else
                 StringExpandPlaceholders(gStringVar4, gOakSpeech_Text_ConfirmRivalName);
             OakSpeechPrintMessage(gStringVar4, sOakSpeechResources->textSpeed);
-            tNameNotConfirmed = FALSE;
-            tTimer = 25;
+            tNameNotConfirmed = FALSE; // Mark confirmation question as printed
+            tTimer = 25; // Set a short delay before showing Yes/No
         }
-        else if (!IsTextPrinterActive(WIN_INTRO_TEXTBOX))
+        else if (!IsTextPrinterActive(WIN_INTRO_TEXTBOX)) // Wait for the confirmation question text to finish printing
         {
-            if (tTimer != 0)
+            if (tTimer != 0) // Wait for the delay timer
             {
                 tTimer--;
             }
             else
             {
+                // Show the Yes/No box. Do NOT assign the result (it returns void).
                 CreateYesNoMenu(&sIntro_WindowTemplates[WIN_INTRO_YESNO], FONT_NORMAL, 0, 2, GetStdWindowBaseTileNum(), 14, 0);
+                // Set the next task function to handle the Yes/No input
                 gTasks[taskId].func = Task_OakSpeech_HandleConfirmNameInput;
             }
         }
@@ -1489,35 +1507,165 @@ static void Task_OakSpeech_ConfirmName(u8 taskId)
 
 static void Task_OakSpeech_HandleConfirmNameInput(u8 taskId)
 {
-    s8 input = Menu_ProcessInputNoWrapClearOnChoose();
+    s16 *data = gTasks[taskId].data; // Access task-specific data
+    s8 input = Menu_ProcessInputNoWrapClearOnChoose(); // Get input, this function also clears the Yes/No box automatically
+
     switch (input)
     {
-    case 0: // YES
+    case 0: // YES chosen
         PlaySE(SE_SELECT);
-        gTasks[taskId].tTimer = 40;
-        if (sOakSpeechResources->hasPlayerBeenNamed == FALSE)
+        if (sOakSpeechResources->hasPlayerBeenNamed == FALSE) // This block handles PLAYER name confirmation (original logic)
         {
+            gTasks[taskId].tTimer = 40; // This timer might be used by the fade, keep it.
             ClearDialogWindowAndFrame(WIN_INTRO_TEXTBOX, TRUE);
             CreateFadeInTask(taskId, 2);
             gTasks[taskId].func = Task_OakSpeech_FadeOutPlayerPic;
         }
-        else
+        else // This block handles RIVAL name confirmation - MODIFIED LOGIC
         {
+            // Print the rival confirmation text FIRST
             StringExpandPlaceholders(gStringVar4, gOakSpeech_Text_RememberRivalsName);
             OakSpeechPrintMessage(gStringVar4, sOakSpeechResources->textSpeed);
-            gTasks[taskId].func = Task_OakSpeech_FadeOutRivalPic;
+            
+            // Set the next task to wait for this text to finish
+            gTasks[taskId].func = Task_OakSpeech_WaitForRivalConfirmText;
         }
         break;
-    case 1: // NO
-    case MENU_B_PRESSED:
+    case 1: // NO chosen
+    case MENU_B_PRESSED: // B button pressed
         PlaySE(SE_SELECT);
+        // Go back to either the player naming screen or the rival name choice screen
         if (sOakSpeechResources->hasPlayerBeenNamed == FALSE)
             gTasks[taskId].func = Task_OakSpeech_FadeOutForPlayerNamingScreen;
         else
-            gTasks[taskId].func = Task_OakSpeech_RepeatNameQuestion;
+            gTasks[taskId].func = Task_OakSpeech_RepeatNameQuestion; // Re-shows rival name options
         break;
+        // Implicitly handles MENU_NOTHING_CHOSEN by doing nothing and looping
     }
 }
+
+static void Task_OakSpeech_WaitForRivalConfirmText(u8 taskId)
+{
+    s16 *data = gTasks[taskId].data;
+
+    // Wait for the text printer to finish
+    if (!IsTextPrinterActive(WIN_INTRO_TEXTBOX))
+    {
+        // Clear the dialog box
+        ClearDialogWindowAndFrame(WIN_INTRO_TEXTBOX, TRUE);
+
+        // Reset tTimer to 0 so it works correctly for the Yes/No menus
+        tTimer = 0; 
+
+        // Now, proceed to the Nuzlocke question
+        gTasks[taskId].func = Task_OakSpeech_AskNuzlocke;
+    }
+}
+
+static void Task_OakSpeech_AskNuzlocke(u8 taskId)
+{
+    // Use the macro to display the Nuzlocke info text
+    OakSpeechPrintMessage(gOakSpeech_Text_NuzlockeInfo, sOakSpeechResources->textSpeed);
+    // Transition to wait for text printing and show Yes/No
+    gTasks[taskId].func = Task_OakSpeech_ProcessNuzlockeChoice;
+    // Store the textbox window ID for later use potentially
+    gTasks[taskId].tTextboxWindowId = WIN_INTRO_TEXTBOX;
+}
+
+static void Task_OakSpeech_ProcessNuzlockeChoice(u8 taskId)
+{
+    s16 *data = gTasks[taskId].data;
+    s8 input;
+
+    // Wait until the text is fully printed
+    if (!IsTextPrinterActive(tTextboxWindowId))
+    {
+        // Check if the Yes/No menu has been created yet (using a temporary timer/flag in task data if needed, or check window ID)
+        // For simplicity now, assume we create it immediately after text. A more robust way might use another state.
+        if (tTimer == 0) // Use tTimer as a flag: 0 means menu not shown yet
+        {
+             // Create and display the Yes/No menu
+            CreateYesNoMenu(&sIntro_WindowTemplates[WIN_INTRO_YESNO], FONT_NORMAL, 0, 2, GetStdWindowBaseTileNum(), 14, 0);
+            tTimer = 1; // Set flag to indicate menu is active
+        }
+        else
+        {
+            // Process input for the Yes/No menu
+            input = Menu_ProcessInputNoWrapClearOnChoose();
+
+            if (input == 0) // YES chosen
+            {
+                PlaySE(SE_SELECT);
+                FlagSet(FLAG_NUZLOCKE_ACTIVE); // Set the Nuzlocke flag
+                gTasks[taskId].func = Task_OakSpeech_AskSoulLink; // Proceed to next question
+                tTimer = 0; // Reset timer/flag for next question
+            }
+            else if (input == 1 || input == MENU_B_PRESSED) // NO chosen or B pressed
+            {
+                PlaySE(SE_SELECT);
+                // Flag is not set (default is off)
+
+                // Skip Soul Link question and resume original flow immediately
+                gTasks[taskId].func = Task_OakSpeech_FadeOutRivalPic;
+            }
+            // If input is MENU_NOTHING_CHOSEN, do nothing and wait for next frame
+        }
+    }
+}
+
+static void Task_OakSpeech_AskSoulLink(u8 taskId)
+{
+    // Display the Soul Link info text
+    OakSpeechPrintMessage(gOakSpeech_Text_SoulLinkInfo, sOakSpeechResources->textSpeed);
+    // Transition to wait for text and show Yes/No
+    gTasks[taskId].func = Task_OakSpeech_ProcessSoulLinkChoice;
+     // Store the textbox window ID for later use potentially
+    gTasks[taskId].tTextboxWindowId = WIN_INTRO_TEXTBOX;
+}
+
+static void Task_OakSpeech_ProcessSoulLinkChoice(u8 taskId)
+{
+    s16 *data = gTasks[taskId].data;
+    s8 input;
+
+    // Wait until the text is fully printed
+    if (!IsTextPrinterActive(tTextboxWindowId))
+    {
+         if (tTimer == 0) // Use tTimer as a flag: 0 means menu not shown yet
+        {
+             // Create and display the Yes/No menu
+            CreateYesNoMenu(&sIntro_WindowTemplates[WIN_INTRO_YESNO], FONT_NORMAL, 0, 2, GetStdWindowBaseTileNum(), 14, 0);
+            tTimer = 1; // Set flag to indicate menu is active
+        }
+        else
+        {
+            // Process input for the Yes/No menu
+            input = Menu_ProcessInputNoWrapClearOnChoose();
+
+            if (input == 0) // YES chosen
+            {
+                PlaySE(SE_SELECT);
+                FlagSet(FLAG_SOUL_LINK_ACTIVE); // Set the Soul Link flag
+                
+                // --- REMOVED rival confirmation text ---
+
+                // Resume original flow
+                gTasks[taskId].func = Task_OakSpeech_FadeOutRivalPic;
+            }
+            else if (input == 1 || input == MENU_B_PRESSED) // NO chosen or B pressed
+            {
+                PlaySE(SE_SELECT);
+                // Flag is not set
+
+                // --- REMOVED rival confirmation text ---
+                
+                // Resume original flow
+                gTasks[taskId].func = Task_OakSpeech_FadeOutRivalPic;
+            }
+        }
+    }
+}
+
 
 static void Task_OakSpeech_FadeOutPlayerPic(u8 taskId)
 {

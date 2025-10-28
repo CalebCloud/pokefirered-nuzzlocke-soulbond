@@ -793,9 +793,12 @@
 #define FLAG_NO_ROOM_FOR_JOYFUL_GAME_CORNER_MOON_STONE   0x2FE
 #define FLAG_OAKS_RATING_IS_VIA_PC                       0x2FF
 
+// Nuzlocke / Soul Link Challenge Flags
+#define FLAG_NUZLOCKE_ACTIVE                             0x300
+#define FLAG_SOUL_LINK_ACTIVE                            0x301
+// End Nuzlocke / Soul Link
+
 // Unused?
-#define FLAG_0x300               0x300
-#define FLAG_0x301               0x301
 #define FLAG_0x302               0x302
 #define FLAG_0x303               0x303
 #define FLAG_0x304               0x304

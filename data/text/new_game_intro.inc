@@ -241,3 +241,24 @@ gOakSpeech_Text_LetsGo::
     .string "about to unfold!\p"
     .string "A world of dreams and adventures\n"
     .string "with POKéMON awaits! Let's go!$"
+
+// Nuzlocke & Soul Link Text
+gOakSpeech_Text_NuzlockeInfo::
+    .string "Before you go, one last thing.\p"
+    .string "Would you like to enable the\n"
+    .string "Nuzlocke Challenge rules?\p"
+    .string "Any POKéMON that faints is lost\n"
+    .string "forever, and you may only catch the\l"
+    .string "first POKéMON in each new area.\p"
+    .string "This choice cannot be undone.\n"
+    .string "Enable the Nuzlocke Challenge?$"
+
+gOakSpeech_Text_SoulLinkInfo::
+    .string "And how about the Soul Link Challenge?\p"
+    .string "In a Soul Link, your POKéMON are\n"
+    .string "paired with a partner's. If one\l"
+    .string "POKéMON faints, its partner is lost.\p"
+    .string "This is for two-player runs and\n"
+    .string "cannot be undone. Enable it?$"
+// End of new text
+
