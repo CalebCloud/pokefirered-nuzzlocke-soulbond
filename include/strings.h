@@ -1069,6 +1069,10 @@ extern const u8 gText_RegionMap_AreaDesc_DottedHole[];
 extern const u8 gText_PlayerScurriedToCenter[];
 extern const u8 gText_PlayerScurriedBackHome[];
 
+// field_screen_effect (Nuzlocke variants)
+extern const u8 gText_Nuz_PlayerBlackedOutToCenter[];
+extern const u8 gText_Nuz_PlayerBlackedOutToHome[];
+
 // save_failed_screen
 extern const u8 gText_SaveFailedCheckingBackup[];
 extern const u8 gText_BackupMemoryDamaged[];
