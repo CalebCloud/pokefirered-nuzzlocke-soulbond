@@ -331,6 +331,9 @@ PalletTown_ProfessorOaksLab_EventScript_RivalApproachForBattleSquirtleRight::
 
 PalletTown_ProfessorOaksLab_EventScript_RivalBattleSquirtle::
 	trainerbattle_earlyrival TRAINER_RIVAL_OAKS_LAB_SQUIRTLE, RIVAL_BATTLE_TUTORIAL, PalletTown_ProfessorOaksLab_Text_RivalDefeat, Text_RivalVictory
+	specialvar VAR_RESULT, GetBattleOutcome
+	compare VAR_RESULT, B_OUTCOME_LOST
+	goto_if_eq PalletTown_ProfessorOaksLab_EventScript_FirstRival_Lost_NuzRouter
 	goto PalletTown_ProfessorOaksLab_EventScript_EndRivalBattle
 	end
 
@@ -384,6 +387,9 @@ PalletTown_ProfessorOaksLab_EventScript_RivalApproachForBattleCharmanderRight::
 
 PalletTown_ProfessorOaksLab_EventScript_RivalBattleCharmander::
 	trainerbattle_earlyrival TRAINER_RIVAL_OAKS_LAB_CHARMANDER, RIVAL_BATTLE_TUTORIAL, PalletTown_ProfessorOaksLab_Text_RivalDefeat, Text_RivalVictory
+	specialvar VAR_RESULT, GetBattleOutcome
+	compare VAR_RESULT, B_OUTCOME_LOST
+	goto_if_eq PalletTown_ProfessorOaksLab_EventScript_FirstRival_Lost_NuzRouter
 	goto PalletTown_ProfessorOaksLab_EventScript_EndRivalBattle
 	end
 
@@ -440,7 +446,18 @@ PalletTown_ProfessorOaksLab_EventScript_RivalApproachForBattleBulbasaurRight::
 
 PalletTown_ProfessorOaksLab_EventScript_RivalBattleBulbasaur::
 	trainerbattle_earlyrival TRAINER_RIVAL_OAKS_LAB_BULBASAUR, RIVAL_BATTLE_TUTORIAL, PalletTown_ProfessorOaksLab_Text_RivalDefeat, Text_RivalVictory
+	specialvar VAR_RESULT, GetBattleOutcome
+	compare VAR_RESULT, B_OUTCOME_LOST
+	goto_if_eq PalletTown_ProfessorOaksLab_EventScript_FirstRival_Lost_NuzRouter
 	goto PalletTown_ProfessorOaksLab_EventScript_EndRivalBattle
+	end
+
+PalletTown_ProfessorOaksLab_EventScript_FirstRival_Lost_NuzRouter::
+	@ If Nuz OFF -> behave vanilla (fall back to the normal post-battle flow)
+	goto_if_ne VAR_NUZLOCKE_ACTIVE, 1, PalletTown_ProfessorOaksLab_EventScript_EndRivalBattle
+
+	@ Nuz ON -> treat rival loss as a white-out; use your HOME variant router
+	call EventScript_Nuz_AfterWhiteOut_ToHome_Router
 	end
 
 PalletTown_ProfessorOaksLab_Movement_RivalApproachForBattleBulbasaurLeft::
