@@ -2498,7 +2498,31 @@ static void PrintInfoPage(void)
 
 static void PrintSkillsPage(void)
 {
-    AddTextPrinterParameterized3(sMonSummaryScreen->windowIds[POKESUM_WIN_RIGHT_PANE], FONT_NORMAL, 14 + sMonSkillsPrinterXpos->curHpStr, 4, sLevelNickTextColors[0], TEXT_SKIP_DRAW, sMonSummaryScreen->summary.curHpStrBuf);
+    if (GetMonData(&sMonSummaryScreen->currentMon, MON_DATA_IS_NUZLOCKE_DEAD, NULL))
+    {
+        static const u8 sDead[] = _("DEAD");
+        AddTextPrinterParameterized3(
+            sMonSummaryScreen->windowIds[POKESUM_WIN_RIGHT_PANE],
+            FONT_NORMAL,
+            14 + sMonSkillsPrinterXpos->curHpStr,
+            4,
+            sLevelNickTextColors[0],
+            TEXT_SKIP_DRAW,
+            sDead
+        );
+    }
+    else
+    {
+        AddTextPrinterParameterized3(
+            sMonSummaryScreen->windowIds[POKESUM_WIN_RIGHT_PANE],
+            FONT_NORMAL,
+            14 + sMonSkillsPrinterXpos->curHpStr,
+            4,
+            sLevelNickTextColors[0],
+            TEXT_SKIP_DRAW,
+            sMonSummaryScreen->summary.curHpStrBuf
+        );
+    }
     AddTextPrinterParameterized3(sMonSummaryScreen->windowIds[POKESUM_WIN_RIGHT_PANE], FONT_NORMAL, 50 + sMonSkillsPrinterXpos->atkStr, 22, sLevelNickTextColors[0], TEXT_SKIP_DRAW, sMonSummaryScreen->summary.statValueStrBufs[PSS_STAT_ATK]);
     AddTextPrinterParameterized3(sMonSummaryScreen->windowIds[POKESUM_WIN_RIGHT_PANE], FONT_NORMAL, 50 + sMonSkillsPrinterXpos->defStr, 35, sLevelNickTextColors[0], TEXT_SKIP_DRAW, sMonSummaryScreen->summary.statValueStrBufs[PSS_STAT_DEF]);
     AddTextPrinterParameterized3(sMonSummaryScreen->windowIds[POKESUM_WIN_RIGHT_PANE], FONT_NORMAL, 50 + sMonSkillsPrinterXpos->spAStr, 48, sLevelNickTextColors[0], TEXT_SKIP_DRAW, sMonSummaryScreen->summary.statValueStrBufs[PSS_STAT_SPA]);

@@ -92,6 +92,9 @@
 #define MON_DATA_SPATK2                   87
 #define MON_DATA_SPDEF2                   88
 
+// For Nuzlocke
+#define MON_DATA_IS_NUZLOCKE_DEAD 89
+
 // Pokemon types
 #define TYPE_NONE           255
 #define TYPE_NORMAL         0

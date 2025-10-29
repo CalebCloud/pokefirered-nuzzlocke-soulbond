@@ -42,6 +42,9 @@
 #include "constants/event_objects.h"
 #include "constants/metatile_labels.h"
 
+#include "pokemon.h"
+#include "constants/pokemon.h"
+
 static EWRAM_DATA u8 sElevatorCurrentFloorWindowId = 0;
 static EWRAM_DATA u16 sElevatorScroll = 0;
 static EWRAM_DATA u16 sElevatorCursorPos = 0;
@@ -1773,6 +1776,31 @@ bool8 DoesPlayerPartyContainSpecies(void)
         if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES_OR_EGG, NULL) == gSpecialVar_0x8004)
             return TRUE;
     }
+    return FALSE;
+}
+
+bool8 Special_Nuz_PCHasLivingMons(void)
+{
+    u8 box, slot;
+
+    for (box = 0; box < TOTAL_BOXES_COUNT; box++)
+    {
+        for (slot = 0; slot < IN_BOX_COUNT; slot++)
+        {
+            u16 species = GetBoxMonDataAt(box, slot, MON_DATA_SPECIES);
+            if (species != SPECIES_NONE)
+            {
+                u32 dead = GetBoxMonDataAt(box, slot, MON_DATA_IS_NUZLOCKE_DEAD);
+                if (dead == 0)
+                {
+                    gSpecialVar_Result = 1;  // yes, at least one living mon in PC
+                    return FALSE;
+                }
+            }
+        }
+    }
+
+    gSpecialVar_Result = 0; // none
     return FALSE;
 }
 

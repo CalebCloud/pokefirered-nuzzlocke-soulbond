@@ -19,6 +19,7 @@
 
 // Added to access FlagSet for setting nuzlocke mode
 #include "event_data.h"
+#include "constants/vars.h" // VAR_SOUL_LINK_ACTIVE (and VAR_NUZLOCKE_ACTIVE)
 
 #define INTRO_SPECIES SPECIES_NIDORAN_F
 
@@ -1596,19 +1597,16 @@ static void Task_OakSpeech_ProcessNuzlockeChoice(u8 taskId)
             if (input == 0) // YES chosen
             {
                 PlaySE(SE_SELECT);
-                FlagSet(FLAG_NUZLOCKE_ACTIVE); // Set the Nuzlocke flag
-                gTasks[taskId].func = Task_OakSpeech_AskSoulLink; // Proceed to next question
-                tTimer = 0; // Reset timer/flag for next question
+                VarSet(VAR_NUZLOCKE_ACTIVE, 1); // enable Nuzlocke via var
+                gTasks[taskId].func = Task_OakSpeech_AskSoulLink;
+                tTimer = 0;
             }
             else if (input == 1 || input == MENU_B_PRESSED) // NO chosen or B pressed
             {
                 PlaySE(SE_SELECT);
-                // Flag is not set (default is off)
-
-                // Skip Soul Link question and resume original flow immediately
+                VarSet(VAR_NUZLOCKE_ACTIVE, 0); // make explicit; stays off if default
                 gTasks[taskId].func = Task_OakSpeech_FadeOutRivalPic;
             }
-            // If input is MENU_NOTHING_CHOSEN, do nothing and wait for next frame
         }
     }
 }
@@ -1645,19 +1643,15 @@ static void Task_OakSpeech_ProcessSoulLinkChoice(u8 taskId)
             if (input == 0) // YES chosen
             {
                 PlaySE(SE_SELECT);
-                FlagSet(FLAG_SOUL_LINK_ACTIVE); // Set the Soul Link flag
+                VarSet(VAR_SOUL_LINK_ACTIVE, 1); // enable Soul-Link via var
                 
-                // --- REMOVED rival confirmation text ---
-
                 // Resume original flow
                 gTasks[taskId].func = Task_OakSpeech_FadeOutRivalPic;
             }
             else if (input == 1 || input == MENU_B_PRESSED) // NO chosen or B pressed
             {
                 PlaySE(SE_SELECT);
-                // Flag is not set
-
-                // --- REMOVED rival confirmation text ---
+                VarSet(VAR_SOUL_LINK_ACTIVE, 0); // make explicit; stays off if default
                 
                 // Resume original flow
                 gTasks[taskId].func = Task_OakSpeech_FadeOutRivalPic;

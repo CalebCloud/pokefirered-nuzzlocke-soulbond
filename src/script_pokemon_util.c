@@ -19,11 +19,19 @@ void HealPlayerParty(void)
     u8 i, j;
     u8 ppBonuses;
     u8 arg[4];
+    u16 maxHP; // <-- DECLARE maxHP HERE at the top of the function
 
     // restore HP.
     for(i = 0; i < gPlayerPartyCount; i++)
     {
-        u16 maxHP = GetMonData(&gPlayerParty[i], MON_DATA_MAX_HP);
+        // Nuzlocke Code
+        // If mon is "dead", skip all healing for it
+        if (GetMonData(&gPlayerParty[i], MON_DATA_IS_NUZLOCKE_DEAD) == TRUE)
+        {
+            continue; // Skip to the next Pokémon
+        }
+
+        maxHP = GetMonData(&gPlayerParty[i], MON_DATA_MAX_HP); // <-- ASSIGN maxHP here (removed 'u16')
         arg[0] = maxHP;
         arg[1] = maxHP >> 8;
         SetMonData(&gPlayerParty[i], MON_DATA_HP, arg);

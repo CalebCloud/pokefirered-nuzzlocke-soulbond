@@ -1263,6 +1263,7 @@ VermilionCity_PokemonCenter_1F_EventScript_ExplainVSSeeker::
 
 	.include "data/scripts/itemfinder.inc"
 	.include "data/scripts/white_out.inc"
+  .include "data/scripts/nuz_whiteout_router.inc"
 
 Std_PutItemAway::
 	bufferitemnameplural STR_VAR_2, VAR_0x8000, VAR_0x8001

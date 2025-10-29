@@ -37,6 +37,9 @@
 #include "constants/pokemon.h"
 #include "constants/maps.h"
 
+#include "event_data.h"          // declares VarGet / VarSet / VarPtr
+#include "constants/vars.h"      // declares VAR_NUZLOCKE_ACTIVE
+
 extern const u8 *const gBattleScriptsForMoveEffects[];
 
 #define DEFENDER_IS_PROTECTED ((gProtectStructs[gBattlerTarget].protected) && (gBattleMoves[gCurrentMove].flags & FLAG_PROTECT_AFFECTED))
@@ -2867,6 +2870,15 @@ static void Cmd_tryfaintmon(void)
         if (!(gAbsentBattlerFlags & gBitTable[gActiveBattler])
          && gBattleMons[gActiveBattler].hp == 0)
         {
+            // For nuzlocke
+            if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER
+                && VarGet(VAR_NUZLOCKE_ACTIVE) == 1)
+            {
+                u8 isDeceased = TRUE;
+                // Get the fainted mon's party slot and set its 'isNuzlockeDead' flag
+                SetMonData(&gPlayerParty[gBattlerPartyIndexes[gActiveBattler]], MON_DATA_IS_NUZLOCKE_DEAD, &isDeceased);
+            }
+
             gHitMarker |= HITMARKER_FAINTED(gActiveBattler);
             BattleScriptPush(gBattlescriptCurrInstr + 7);
             gBattlescriptCurrInstr = BS_ptr;

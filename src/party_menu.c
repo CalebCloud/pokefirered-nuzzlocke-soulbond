@@ -145,6 +145,27 @@ struct PartyMenuBox
     u8 statusSpriteId;
 };
 
+static inline bool8 MonIsNuzlockeDead(const struct Pokemon *mon)
+{
+    return GetMonData((struct Pokemon *)mon, MON_DATA_IS_NUZLOCKE_DEAD, NULL);
+}
+
+// Prints "DEAD" where HP text normally appears in the party box.
+// Tweak (x,y) if you want to nudge position; these coords are a safe default for FR/LG layouts.
+static void DisplayPartyPokemonDeadTag(struct PartyMenuBox *box)
+{
+    static const u8 sDead[] = _("DEAD");
+    AddTextPrinterParameterized(
+        box->windowId,
+        FONT_NORMAL,
+        sDead,          // <-- string is arg #3
+        36,             // x
+        19,             // y
+        TEXT_SKIP_DRAW, // speed (instant)
+        NULL            // callback
+    );
+}
+
 static void BlitBitmapToPartyWindow_LeftColumn(u8 windowId, u8 x, u8 y, u8 width, u8 height, bool8 hideHP);
 static void BlitBitmapToPartyWindow_RightColumn(u8 windowId, u8 x, u8 y, u8 width, u8 height, bool8 hideHP);
 static void CursorCB_Summary(u8 taskId);
@@ -782,17 +803,23 @@ static void DisplayPartyPokemonData(u8 slot)
     {
         sPartyMenuBoxes[slot].infoRects->blitFunc(sPartyMenuBoxes[slot].windowId, 0, 0, 0, 0, TRUE);
         DisplayPartyPokemonNickname(&gPlayerParty[slot], &sPartyMenuBoxes[slot], DRAW_TEXT_ONLY);
+        return;
     }
-    else
+
+    sPartyMenuBoxes[slot].infoRects->blitFunc(sPartyMenuBoxes[slot].windowId, 0, 0, 0, 0, FALSE);
+    DisplayPartyPokemonNickname(&gPlayerParty[slot], &sPartyMenuBoxes[slot], DRAW_TEXT_ONLY);
+    DisplayPartyPokemonLevelCheck(&gPlayerParty[slot], &sPartyMenuBoxes[slot], DRAW_TEXT_ONLY);
+    DisplayPartyPokemonGenderNidoranCheck(&gPlayerParty[slot], &sPartyMenuBoxes[slot], DRAW_TEXT_ONLY);
+
+    if (GetMonData(&gPlayerParty[slot], MON_DATA_IS_NUZLOCKE_DEAD, NULL))
     {
-        sPartyMenuBoxes[slot].infoRects->blitFunc(sPartyMenuBoxes[slot].windowId, 0, 0, 0, 0, FALSE);
-        DisplayPartyPokemonNickname(&gPlayerParty[slot], &sPartyMenuBoxes[slot], DRAW_TEXT_ONLY);
-        DisplayPartyPokemonLevelCheck(&gPlayerParty[slot], &sPartyMenuBoxes[slot], DRAW_TEXT_ONLY);
-        DisplayPartyPokemonGenderNidoranCheck(&gPlayerParty[slot], &sPartyMenuBoxes[slot], DRAW_TEXT_ONLY);
-        DisplayPartyPokemonHPCheck(&gPlayerParty[slot], &sPartyMenuBoxes[slot], DRAW_TEXT_ONLY);
-        DisplayPartyPokemonMaxHPCheck(&gPlayerParty[slot], &sPartyMenuBoxes[slot], DRAW_TEXT_ONLY);
-        DisplayPartyPokemonHPBarCheck(&gPlayerParty[slot], &sPartyMenuBoxes[slot]);
+        DisplayPartyPokemonDeadTag(&sPartyMenuBoxes[slot]);
+        return;
     }
+    
+    DisplayPartyPokemonHPCheck(&gPlayerParty[slot], &sPartyMenuBoxes[slot], DRAW_TEXT_ONLY);
+    DisplayPartyPokemonMaxHPCheck(&gPlayerParty[slot], &sPartyMenuBoxes[slot], DRAW_TEXT_ONLY);
+    DisplayPartyPokemonHPBarCheck(&gPlayerParty[slot], &sPartyMenuBoxes[slot]);
 }
 
 static void DisplayPartyPokemonDescriptionData(u8 slot, u8 stringId)
@@ -2966,6 +2993,15 @@ static void SetPartyMonFieldSelectionActions(struct Pokemon *mons, u8 slotId)
 
     sPartyMenuInternal->numActions = 0;
     AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, CURSOR_OPTION_SUMMARY);
+    
+    // For Nuzlocke
+    // If the mon is dead, only show "Summary" and "Cancel"
+    if (GetMonData(&mons[slotId], MON_DATA_IS_NUZLOCKE_DEAD) == TRUE)
+    {
+        AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, CURSOR_OPTION_CANCEL1);
+        return; // Skip adding any other field moves or actions
+    }
+    
     // Add field moves to action list
     for (i = 0; i < MAX_MON_MOVES; ++i)
     {
@@ -4431,7 +4467,13 @@ void ItemUseCB_Medicine(u8 taskId, TaskFunc func)
     u16 item = gSpecialVar_ItemId;
     bool8 canHeal;
 
-    if (!NotUsingHPEVItemOnShedinja(mon, item))
+
+    // Check if the Pokémon is "dead"
+    if (GetMonData(mon, MON_DATA_IS_NUZLOCKE_DEAD) == TRUE)
+    {
+        canHeal = TRUE; // Set to TRUE to make the item fail
+    }
+    else if (!NotUsingHPEVItemOnShedinja(mon, item))
     {
         canHeal = TRUE;
     }
@@ -4469,8 +4511,11 @@ void ItemUseCB_MedicineStep(u8 taskId, TaskFunc func)
     bool8 canHeal;
     bool8 cannotHeal;
 
-    if (NotUsingHPEVItemOnShedinja(mon, item) == FALSE)
+    if (GetMonData(mon, MON_DATA_IS_NUZLOCKE_DEAD) == TRUE)
+    {
         cannotHeal = TRUE;
+    }
+    else if (NotUsingHPEVItemOnShedinja(mon, item) == FALSE)        cannotHeal = TRUE;
     else
     {
         canHeal = IsHPRecoveryItem(item);
@@ -5905,6 +5950,14 @@ void EnterPartyFromItemMenuInBattle(void)
 
 static u8 GetPartyMenuActionsTypeInBattle(struct Pokemon *mon)
 {
+    u32 actionType;
+
+    // For Nuzlocke
+    if (GetMonData(mon, MON_DATA_IS_NUZLOCKE_DEAD) == TRUE)
+    {
+        return ACTIONS_SUMMARY_ONLY; // Only allow "Summary"
+    }
+    
     if (GetMonData(&gPlayerParty[1], MON_DATA_SPECIES) == SPECIES_NONE || GetMonData(mon, MON_DATA_IS_EGG))
         return ACTIONS_SUMMARY_ONLY;
     else if (gPartyMenu.action == PARTY_ACTION_SEND_OUT)

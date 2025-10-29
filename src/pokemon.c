@@ -2173,12 +2173,24 @@ void BoxMonToMon(struct BoxPokemon *src, struct Pokemon *dest)
 {
     u32 value = 0;
     dest->box = *src;
+
+    // Clear transient stuff on build
     SetMonData(dest, MON_DATA_STATUS, &value);
     SetMonData(dest, MON_DATA_HP, &value);
     SetMonData(dest, MON_DATA_MAX_HP, &value);
     value = MAIL_NONE;
     SetMonData(dest, MON_DATA_MAIL, &value);
+
     CalculateMonStats(dest);
+
+    // if Nuzlocke-dead, force HP=0 and clear status again
+    if (GetMonData(dest, MON_DATA_IS_NUZLOCKE_DEAD, NULL))
+    {
+        u16 hp0 = 0;
+        u32 st0 = 0;
+        SetMonData(dest, MON_DATA_HP, &hp0);
+        SetMonData(dest, MON_DATA_STATUS, &st0);
+    }
 }
 
 static u8 GetLevelFromMonExp(struct Pokemon *mon)
@@ -3319,6 +3331,11 @@ u32 GetBoxMonData3(struct BoxPokemon *boxMon, s32 field, u8 *data)
                 | (substruct3->worldRibbon << 26);
         }
         break;
+    // For Nuzlocke
+    case MON_DATA_IS_NUZLOCKE_DEAD:
+        retVal = substruct3->isNuzlockeDead;
+        break;
+
     default:
         break;
     }
@@ -3652,6 +3669,15 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
     case MON_DATA_MODERN_FATEFUL_ENCOUNTER:
         SET8(substruct3->modernFatefulEncounter);
         break;
+
+    // For nuzlocke
+    case MON_DATA_IS_NUZLOCKE_DEAD:
+    {
+        const u8 *val = (const u8 *)dataArg;
+        substruct3->isNuzlockeDead = (*val != 0) ? 1 : 0;  // 1-bit field set
+        break;
+    }
+
     case MON_DATA_IVS:
     {
 #ifdef BUGFIX
@@ -4512,6 +4538,9 @@ static bool8 HealStatusConditions(struct Pokemon *mon, u32 unused, u32 healMask,
 {
     u32 status = GetMonData(mon, MON_DATA_STATUS, NULL);
 
+    if (GetMonData(mon, MON_DATA_IS_NUZLOCKE_DEAD) == TRUE)
+        return TRUE; // Return TRUE to signal no effect
+    
     if (status & healMask)
     {
         status &= ~healMask;
@@ -5992,20 +6021,27 @@ bool8 IsOtherTrainer(u32 otId, u8 *otName)
 
 void MonRestorePP(struct Pokemon *mon)
 {
+    if (GetMonData(mon, MON_DATA_IS_NUZLOCKE_DEAD) == TRUE)
+        return; // Do not restore PP if dead
+
     BoxMonRestorePP(&mon->box);
 }
 
 void BoxMonRestorePP(struct BoxPokemon *boxMon)
 {
-    int i;
+    int i;  // C89: declare before any statements
+
+    // Skip PP restore for Nuzlocke-dead mons
+    if (GetBoxMonData(boxMon, MON_DATA_IS_NUZLOCKE_DEAD, NULL))
+        return;
 
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
-        if (GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, 0))
+        if (GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, NULL))
         {
-            u16 move = GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, 0);
-            u16 bonus = GetBoxMonData(boxMon, MON_DATA_PP_BONUSES, 0);
-            u8 pp = CalculatePPWithBonus(move, bonus, i);
+            u16 move  = GetBoxMonData(boxMon, MON_DATA_MOVE1 + i, NULL);
+            u16 bonus = GetBoxMonData(boxMon, MON_DATA_PP_BONUSES, NULL);
+            u8  pp    = CalculatePPWithBonus(move, bonus, i);
             SetBoxMonData(boxMon, MON_DATA_PP1 + i, &pp);
         }
     }

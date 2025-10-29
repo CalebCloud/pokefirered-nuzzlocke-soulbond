@@ -21,8 +21,46 @@ PalletTown_PlayersHouse_2F_FirstWarpIn::
 	end
 
 PalletTown_PlayersHouse_2F_EventScript_NES::
-	msgbox PalletTown_PlayersHouse_2F_Text_PlayedWithNES, MSGBOX_SIGN
-	end
+    lockall
+    // Order: BOTH -> NUZ only -> SOUL only -> BOTH OFF
+    goto_if_eq VAR_NUZLOCKE_ACTIVE, 1, PalletTown_PlayersHouse_2F__CheckSoulThenBoth
+    goto PalletTown_PlayersHouse_2F_EventScript_NES_BothOff
+
+PalletTown_PlayersHouse_2F__CheckSoulThenBoth:
+    goto_if_eq VAR_SOUL_LINK_ACTIVE, 1, PalletTown_PlayersHouse_2F_EventScript_NES_Both
+    goto PalletTown_PlayersHouse_2F_EventScript_NES_Nuz
+
+PalletTown_PlayersHouse_2F_EventScript_NES_Both:
+    msgbox PalletTown_PlayersHouse_2F_Text_PlayedWithNES_Both, MSGBOX_SIGN
+    releaseall
+    end
+
+PalletTown_PlayersHouse_2F_EventScript_NES_Nuz:
+    msgbox PalletTown_PlayersHouse_2F_Text_PlayedWithNES_Nuz, MSGBOX_SIGN
+    releaseall
+    end
+
+PalletTown_PlayersHouse_2F_EventScript_NES_Soul:
+    msgbox PalletTown_PlayersHouse_2F_Text_PlayedWithNES_Soul, MSGBOX_SIGN
+    releaseall
+    end
+
+PalletTown_PlayersHouse_2F_EventScript_NES_BothOff:
+    // Optional: still show the normal NES flavor after the debug line
+    msgbox PalletTown_PlayersHouse_2F_Text_BothOff, MSGBOX_SIGN
+    msgbox PalletTown_PlayersHouse_2F_Text_PlayedWithNES, MSGBOX_SIGN
+    releaseall
+    end
+
+PalletTown_PlayersHouse_2F_EventScript_DebugSetModes::
+    lockall
+    setvar VAR_NUZLOCKE_ACTIVE, 1
+    setvar VAR_SOUL_LINK_ACTIVE, 1
+		giveitem ITEM_REVIVE, 5
+		giveitem ITEM_MASTER_BALL, 5
+    msgbox PalletTown_PlayersHouse_2F_Text_DebugModesSet, MSGBOX_SIGN
+    releaseall
+    end
 
 PalletTown_PlayersHouse_2F_EventScript_Sign::
 	msgbox PalletTown_PlayersHouse_2F_Text_PressLRForHelp, MSGBOX_SIGN
