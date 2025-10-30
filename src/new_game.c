@@ -30,6 +30,10 @@
 #include "pokemon_jump.h"
 #include "event_scripts.h"
 
+// For Nuzlocke Flags/Vars
+#include "constants/flags.h"
+#include "constants/vars.h"
+
 // this file's functions
 static void ResetMiniGamesResults(void);
 
@@ -107,6 +111,14 @@ void ResetMenuAndMonGlobals(void)
 void NewGameInitData(void)
 {
     u8 rivalName[PLAYER_NAME_LENGTH + 1];
+    bool8 randomizerEnabled;
+    u16 nuzlockeActive;
+    u16 soulLinkActive;
+
+    // ===== PRESERVE CHALLENGE MODE SETTINGS BEFORE WIPE =====
+    randomizerEnabled = FlagGet(FLAG_WILD_RANDOMIZER_ENABLED);
+    nuzlockeActive = VarGet(VAR_NUZLOCKE_ACTIVE);
+    soulLinkActive = VarGet(VAR_SOUL_LINK_ACTIVE);
 
     StringCopy(rivalName, gSaveBlock1Ptr->rivalName);
     gDifferentSaveFile = TRUE;
@@ -149,6 +161,12 @@ void NewGameInitData(void)
     RunScriptImmediately(EventScript_ResetAllMapFlags);
     StringCopy(gSaveBlock1Ptr->rivalName, rivalName);
     ResetTrainerTowerResults();
+
+    // ===== RESTORE CHALLENGE MODE SETTINGS AFTER WIPE =====
+    if (randomizerEnabled)
+        FlagSet(FLAG_WILD_RANDOMIZER_ENABLED);
+    VarSet(VAR_NUZLOCKE_ACTIVE, nuzlockeActive);
+    VarSet(VAR_SOUL_LINK_ACTIVE, soulLinkActive);
 }
 
 static void ResetMiniGamesResults(void)
