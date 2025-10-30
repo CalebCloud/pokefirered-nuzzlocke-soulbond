@@ -125,4 +125,4 @@ Complete overhaul of the defeat system with Nuzlocke-aware logic:
 
 ### Nickname Enforcement
 
-- Apply to in-game trades under Nuzlocke rules
+- Doesn't yet apply to trades or in game gifts like your starter, only wild pokemon
