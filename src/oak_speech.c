@@ -116,6 +116,9 @@ static void Task_OakSpeech_ProcessNuzlockeChoice(u8);
 static void Task_OakSpeech_AskSoulLink(u8);
 static void Task_OakSpeech_ProcessSoulLinkChoice(u8);
 static void Task_OakSpeech_WaitForRivalConfirmText(u8);
+// For Randomizer
+static void Task_OakSpeech_AskRandomizer(u8 taskId);
+static void Task_OakSpeech_ProcessRandomizerChoice(u8 taskId);
 
 extern const u8 gText_Controls[];
 extern const u8 gText_ABUTTONNext[];
@@ -126,6 +129,9 @@ extern const u8 gText_Girl[];
 // For Nuzlocke + Soul-link
 extern const u8 gOakSpeech_Text_NuzlockeInfo[];
 extern const u8 gOakSpeech_Text_SoulLinkInfo[];
+
+// For Randomizer
+extern const u8 gOakSpeech_Text_RandomizerInfo[];
 
 extern const struct OamData gOamData_AffineOff_ObjBlend_32x32;
 extern const struct OamData gOamData_AffineOff_ObjNormal_32x32;
@@ -1558,8 +1564,56 @@ static void Task_OakSpeech_WaitForRivalConfirmText(u8 taskId)
         // Reset tTimer to 0 so it works correctly for the Yes/No menus
         tTimer = 0; 
 
-        // Now, proceed to the Nuzlocke question
-        gTasks[taskId].func = Task_OakSpeech_AskNuzlocke;
+        // Now, proceed to the Randomizer question
+        gTasks[taskId].func = Task_OakSpeech_AskRandomizer;
+    }
+}
+
+static void Task_OakSpeech_AskRandomizer(u8 taskId)
+{
+    // Display the Randomizer info text
+    OakSpeechPrintMessage(gOakSpeech_Text_RandomizerInfo, sOakSpeechResources->textSpeed);
+    // Transition to wait for text printing and show Yes/No
+    gTasks[taskId].func = Task_OakSpeech_ProcessRandomizerChoice;
+    // Store the textbox window ID
+    gTasks[taskId].tTextboxWindowId = WIN_INTRO_TEXTBOX;
+}
+
+static void Task_OakSpeech_ProcessRandomizerChoice(u8 taskId)
+{
+    s16 *data = gTasks[taskId].data;
+    s8 input;
+
+    // Wait until the text is fully printed
+    if (!IsTextPrinterActive(tTextboxWindowId))
+    {
+        // Check if the Yes/No menu has been created yet
+        if (tTimer == 0) // Use tTimer as a flag: 0 means menu not shown yet
+        {
+            // Create and display the Yes/No menu
+            CreateYesNoMenu(&sIntro_WindowTemplates[WIN_INTRO_YESNO], FONT_NORMAL, 0, 2, GetStdWindowBaseTileNum(), 14, 0);
+            tTimer = 1; // Set flag to indicate menu is active
+        }
+        else
+        {
+            // Process input for the Yes/No menu
+            input = Menu_ProcessInputNoWrapClearOnChoose();
+
+            if (input == 0) // YES chosen
+            {
+                PlaySE(SE_SELECT);
+                FlagSet(FLAG_WILD_RANDOMIZER_ENABLED); // Enable randomizer
+                gTasks[taskId].func = Task_OakSpeech_AskNuzlocke; // Go to Nuzlocke question
+                tTimer = 0; // Reset timer for next question
+            }
+            else if (input == 1 || input == MENU_B_PRESSED) // NO chosen or B pressed
+            {
+                PlaySE(SE_SELECT);
+                FlagClear(FLAG_WILD_RANDOMIZER_ENABLED); // Disable randomizer (explicit)
+                gTasks[taskId].func = Task_OakSpeech_AskNuzlocke; // Still go to Nuzlocke question
+                tTimer = 0; // Reset timer for next question
+            }
+        }
     }
 }
 

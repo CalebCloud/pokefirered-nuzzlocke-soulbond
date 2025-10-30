@@ -1087,39 +1087,154 @@ PalletTown_ProfessorOaksLab_EventScript_BulbasaurBall::
 	lock
 	faceplayer
 	setvar PLAYER_STARTER_NUM, 0
+	
+	@ --- CHECK IF WE NEED TO RANDOMIZE THE 3 STARTERS ---
+	checkflag FLAG_WILD_RANDOMIZER_ENABLED
+	goto_if 1, PalletTown_ProfessorOaksLab_EventScript_CheckIfStartersRandomized
+	
+	@ Randomizer is OFF, use normal starters
 	setvar PLAYER_STARTER_SPECIES, SPECIES_BULBASAUR
 	setvar RIVAL_STARTER_SPECIES, SPECIES_CHARMANDER
 	setvar RIVAL_STARTER_ID, LOCALID_CHARMANDER_BALL
+	goto PalletTown_ProfessorOaksLab_EventScript_BulbasaurBall_Continue
+
+PalletTown_ProfessorOaksLab_EventScript_CheckIfStartersRandomized:
+	@ Check if we've already randomized the starters (flag will be set after first randomization)
+	checkflag FLAG_TEMP_1  @ Use a temporary flag to track if we've randomized
+	goto_if 1, PalletTown_ProfessorOaksLab_EventScript_UseExistingRandomStarters
+	
+	@ First time - randomize all 3 starters and store them
+	call PalletTown_ProfessorOaksLab_EventScript_RandomizeAllThreeStarters
+	
+PalletTown_ProfessorOaksLab_EventScript_UseExistingRandomStarters:
+	@ Load the pre-randomized Bulbasaur ball choice from VAR_TEMP_5
+	copyvar PLAYER_STARTER_SPECIES, VAR_TEMP_5
+	@ Set rival's counter-starter (we'll determine this later based on player's choice)
+	setvar RIVAL_STARTER_ID, LOCALID_CHARMANDER_BALL
+
+PalletTown_ProfessorOaksLab_EventScript_BulbasaurBall_Continue:
 	goto_if_ge VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB, 3, PalletTown_ProfessorOaksLab_EventScript_LastPokeBall
 	goto_if_eq VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB, 2, PalletTown_ProfessorOaksLab_EventScript_ConfirmStarterChoice
 	msgbox PalletTown_ProfessorOaksLab_Text_ThoseArePokeBalls
 	release
 	end
 
+PalletTown_ProfessorOaksLab_EventScript_SquirtleBall::
+	lock
+	faceplayer
+	setvar PLAYER_STARTER_NUM, 1
+	
+	@ --- CHECK IF WE NEED TO RANDOMIZE THE 3 STARTERS ---
+	checkflag FLAG_WILD_RANDOMIZER_ENABLED
+	goto_if 1, PalletTown_ProfessorOaksLab_EventScript_CheckIfStartersRandomized_Squirtle
+	
+	@ Randomizer is OFF, use normal starters
+	setvar PLAYER_STARTER_SPECIES, SPECIES_SQUIRTLE
+	setvar RIVAL_STARTER_SPECIES, SPECIES_BULBASAUR
+	setvar RIVAL_STARTER_ID, LOCALID_BULBASAUR_BALL
+	goto PalletTown_ProfessorOaksLab_EventScript_SquirtleBall_Continue
+
+PalletTown_ProfessorOaksLab_EventScript_CheckIfStartersRandomized_Squirtle:
+	@ Check if we've already randomized the starters
+	checkflag FLAG_TEMP_1
+	goto_if 1, PalletTown_ProfessorOaksLab_EventScript_UseExistingRandomStarters_Squirtle
+	
+	@ First time - randomize all 3 starters
+	call PalletTown_ProfessorOaksLab_EventScript_RandomizeAllThreeStarters
+	
+PalletTown_ProfessorOaksLab_EventScript_UseExistingRandomStarters_Squirtle:
+	@ Load the pre-randomized Squirtle ball choice from VAR_TEMP_6
+	copyvar PLAYER_STARTER_SPECIES, VAR_TEMP_6
+	setvar RIVAL_STARTER_ID, LOCALID_BULBASAUR_BALL
+
+PalletTown_ProfessorOaksLab_EventScript_SquirtleBall_Continue:
+	goto_if_ge VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB, 3, PalletTown_ProfessorOaksLab_EventScript_LastPokeBall
+	goto_if_eq VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB, 2, PalletTown_ProfessorOaksLab_EventScript_ConfirmStarterChoice
+	msgbox PalletTown_ProfessorOaksLab_Text_ThoseArePokeBalls
+	release
+	end
+
+PalletTown_ProfessorOaksLab_EventScript_CharmanderBall::
+	lock
+	faceplayer
+	setvar PLAYER_STARTER_NUM, 2
+	
+	@ --- CHECK IF WE NEED TO RANDOMIZE THE 3 STARTERS ---
+	checkflag FLAG_WILD_RANDOMIZER_ENABLED
+	goto_if 1, PalletTown_ProfessorOaksLab_EventScript_CheckIfStartersRandomized_Charmander
+	
+	@ Randomizer is OFF, use normal starters
+	setvar PLAYER_STARTER_SPECIES, SPECIES_CHARMANDER
+	setvar RIVAL_STARTER_SPECIES, SPECIES_SQUIRTLE
+	setvar RIVAL_STARTER_ID, LOCALID_SQUIRTLE_BALL
+	goto PalletTown_ProfessorOaksLab_EventScript_CharmanderBall_Continue
+
+PalletTown_ProfessorOaksLab_EventScript_CheckIfStartersRandomized_Charmander:
+	@ Check if we've already randomized the starters
+	checkflag FLAG_TEMP_1
+	goto_if 1, PalletTown_ProfessorOaksLab_EventScript_UseExistingRandomStarters_Charmander
+	
+	@ First time - randomize all 3 starters
+	call PalletTown_ProfessorOaksLab_EventScript_RandomizeAllThreeStarters
+	
+PalletTown_ProfessorOaksLab_EventScript_UseExistingRandomStarters_Charmander:
+	@ Load the pre-randomized Charmander ball choice from VAR_TEMP_7
+	copyvar PLAYER_STARTER_SPECIES, VAR_TEMP_7
+	setvar RIVAL_STARTER_ID, LOCALID_SQUIRTLE_BALL
+
+PalletTown_ProfessorOaksLab_EventScript_CharmanderBall_Continue:
+	goto_if_ge VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB, 3, PalletTown_ProfessorOaksLab_EventScript_LastPokeBall
+	goto_if_eq VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB, 2, PalletTown_ProfessorOaksLab_EventScript_ConfirmStarterChoice
+	msgbox PalletTown_ProfessorOaksLab_Text_ThoseArePokeBalls
+	release
+	end
+
+@ --- NEW SUBROUTINE: RANDOMIZE ALL 3 STARTERS ONCE ---
+PalletTown_ProfessorOaksLab_EventScript_RandomizeAllThreeStarters::
+	@ Generate random starter 1 (for Bulbasaur ball) and store in VAR_TEMP_5
+PalletTown_ProfessorOaksLab_EventScript_RerollStarter1:
+	random 386
+	addvar VAR_RESULT, 1
+	copyvar VAR_0x8005, VAR_RESULT
+	compare VAR_0x8005, SPECIES_UNOWN
+	goto_if 1, PalletTown_ProfessorOaksLab_EventScript_RerollStarter1
+	copyvar VAR_TEMP_5, VAR_RESULT  @ Store starter 1
+
+	@ Generate random starter 2 (for Squirtle ball) and store in VAR_TEMP_6
+PalletTown_ProfessorOaksLab_EventScript_RerollStarter2:
+	random 386
+	addvar VAR_RESULT, 1
+	copyvar VAR_0x8005, VAR_RESULT
+	compare VAR_0x8005, SPECIES_UNOWN
+	goto_if 1, PalletTown_ProfessorOaksLab_EventScript_RerollStarter2
+	copyvar VAR_TEMP_6, VAR_RESULT  @ Store starter 2
+
+	@ Generate random starter 3 (for Charmander ball) and store in VAR_TEMP_7
+PalletTown_ProfessorOaksLab_EventScript_RerollStarter3:
+	random 386
+	addvar VAR_RESULT, 1
+	copyvar VAR_0x8005, VAR_RESULT
+	compare VAR_0x8005, SPECIES_UNOWN
+	goto_if 1, PalletTown_ProfessorOaksLab_EventScript_RerollStarter3
+	copyvar VAR_TEMP_7, VAR_RESULT  @ Store starter 3
+
+	@ Set flag so we don't randomize again
+	setflag FLAG_TEMP_1
+	return
+
+PalletTown_ProfessorOaksLab_Text_OakChoosingGeneric::
+    .string "So, you're choosing the\n"
+    .string "{STR_VAR_1} POKéMON?$"
+
 PalletTown_ProfessorOaksLab_EventScript_ConfirmStarterChoice::
 	applymovement LOCALID_OAKS_LAB_PROF_OAK, Common_Movement_FaceRight
 	waitmovement 0
+
+	@ PLAYER_STARTER_SPECIES is already set by the ...Ball script
 	showmonpic PLAYER_STARTER_SPECIES, 10, 3
 	textcolor NPC_TEXT_COLOR_MALE
-	goto_if_eq PLAYER_STARTER_NUM, 0, PalletTown_ProfessorOaksLab_EventScript_ConfirmBulbasaur
-	goto_if_eq PLAYER_STARTER_NUM, 1, PalletTown_ProfessorOaksLab_EventScript_ConfirmSquirtle
-	goto_if_eq PLAYER_STARTER_NUM, 2, PalletTown_ProfessorOaksLab_EventScript_ConfirmCharmander
-	end
-
-PalletTown_ProfessorOaksLab_EventScript_ConfirmBulbasaur::
-	msgbox PalletTown_ProfessorOaksLab_Text_OakChoosingBulbasaur, MSGBOX_YESNO
-	goto_if_eq VAR_RESULT, YES, PalletTown_ProfessorOaksLab_EventScript_ChoseStarter
-	goto_if_eq VAR_RESULT, NO, PalletTown_ProfessorOaksLab_EventScript_DeclinedStarter
-	end
-
-PalletTown_ProfessorOaksLab_EventScript_ConfirmSquirtle::
-	msgbox PalletTown_ProfessorOaksLab_Text_OakChoosingSquirtle, MSGBOX_YESNO
-	goto_if_eq VAR_RESULT, YES, PalletTown_ProfessorOaksLab_EventScript_ChoseStarter
-	goto_if_eq VAR_RESULT, NO, PalletTown_ProfessorOaksLab_EventScript_DeclinedStarter
-	end
-
-PalletTown_ProfessorOaksLab_EventScript_ConfirmCharmander::
-	msgbox PalletTown_ProfessorOaksLab_Text_OakChoosingCharmander, MSGBOX_YESNO
+	bufferspeciesname STR_VAR_1, PLAYER_STARTER_SPECIES
+	msgbox PalletTown_ProfessorOaksLab_Text_OakChoosingGeneric, MSGBOX_YESNO
 	goto_if_eq VAR_RESULT, YES, PalletTown_ProfessorOaksLab_EventScript_ChoseStarter
 	goto_if_eq VAR_RESULT, NO, PalletTown_ProfessorOaksLab_EventScript_DeclinedStarter
 	end
@@ -1136,6 +1251,8 @@ PalletTown_ProfessorOaksLab_EventScript_ChoseStarter::
 	call EventScript_RestorePrevTextColor
 	setflag FLAG_SYS_POKEMON_GET
 	setflag FLAG_PALLET_LADY_NOT_BLOCKING_SIGN
+
+	@ --- GIVE POKEMON (SPECIES IS ALREADY SET) ---
 	givemon PLAYER_STARTER_SPECIES, 5
 	copyvar VAR_STARTER_MON, PLAYER_STARTER_NUM
 	bufferspeciesname STR_VAR_1, PLAYER_STARTER_SPECIES
@@ -1143,12 +1260,14 @@ PalletTown_ProfessorOaksLab_EventScript_ChoseStarter::
 	waitmessage
 	playfanfare MUS_OBTAIN_KEY_ITEM
 	waitfanfare
-	msgbox Text_GiveNicknameToThisMon, MSGBOX_YESNO
-	goto_if_eq VAR_RESULT, YES, EventScript_GiveNicknameToStarter
-	goto_if_eq VAR_RESULT, NO, PalletTown_ProfessorOaksLab_EventScript_RivalPicksStarter
-	end
 
-EventScript_GiveNicknameToStarter::
+	@ --- NUZLOCKE FORCED NICKNAME LOGIC ---
+	goto_if_eq VAR_NUZLOCKE_ACTIVE, 1, PalletTown_ProfessorOaksLab_EventScript_ForceNicknameStarter
+	
+	msgbox Text_GiveNicknameToThisMon, MSGBOX_YESNO
+	goto_if_eq VAR_RESULT, NO, PalletTown_ProfessorOaksLab_EventScript_RivalPicksStarter
+	
+PalletTown_ProfessorOaksLab_EventScript_ForceNicknameStarter:
 	setvar VAR_0x8004, 0
 	call EventScript_ChangePokemonNickname
 	goto PalletTown_ProfessorOaksLab_EventScript_RivalPicksStarter
@@ -1183,6 +1302,23 @@ PalletTown_ProfessorOaksLab_EventScript_RivalTakesStarter::
 	textcolor NPC_TEXT_COLOR_MALE
 	msgbox PalletTown_ProfessorOaksLab_Text_RivalIllTakeThisOneThen
 	removeobject RIVAL_STARTER_ID
+
+	@ --- RIVAL GETS RANDOM STARTER (or normal based on flag) ---
+	checkflag FLAG_WILD_RANDOMIZER_ENABLED
+	goto_if 1, PalletTown_ProfessorOaksLab_EventScript_RandomizeRivalStarter
+	goto PalletTown_ProfessorOaksLab_EventScript_ShowRivalReceivedMon
+
+PalletTown_ProfessorOaksLab_EventScript_RandomizeRivalStarter:
+	@ Generate ONE random starter for rival
+PalletTown_ProfessorOaksLab_EventScript_RerollRivalStarter:
+	random 386
+	addvar VAR_RESULT, 1
+	copyvar VAR_0x8005, VAR_RESULT
+	compare VAR_0x8005, SPECIES_UNOWN
+	goto_if 1, PalletTown_ProfessorOaksLab_EventScript_RerollRivalStarter
+	copyvar RIVAL_STARTER_SPECIES, VAR_RESULT
+
+PalletTown_ProfessorOaksLab_EventScript_ShowRivalReceivedMon:
 	textcolor NPC_TEXT_COLOR_NEUTRAL
 	bufferspeciesname STR_VAR_1, RIVAL_STARTER_SPECIES
 	message PalletTown_ProfessorOaksLab_Text_RivalReceivedMonFromOak
@@ -1225,32 +1361,6 @@ PalletTown_ProfessorOaksLab_Movement_RivalWalksToBulbasaur::
 	walk_right
 	walk_in_place_faster_up
 	step_end
-
-PalletTown_ProfessorOaksLab_EventScript_SquirtleBall::
-	lock
-	faceplayer
-	setvar PLAYER_STARTER_NUM, 1
-	setvar PLAYER_STARTER_SPECIES, SPECIES_SQUIRTLE
-	setvar RIVAL_STARTER_SPECIES, SPECIES_BULBASAUR
-	setvar RIVAL_STARTER_ID, LOCALID_BULBASAUR_BALL
-	goto_if_ge VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB, 3, PalletTown_ProfessorOaksLab_EventScript_LastPokeBall
-	goto_if_eq VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB, 2, PalletTown_ProfessorOaksLab_EventScript_ConfirmStarterChoice
-	msgbox PalletTown_ProfessorOaksLab_Text_ThoseArePokeBalls
-	release
-	end
-
-PalletTown_ProfessorOaksLab_EventScript_CharmanderBall::
-	lock
-	faceplayer
-	setvar PLAYER_STARTER_NUM, 2
-	setvar PLAYER_STARTER_SPECIES, SPECIES_CHARMANDER
-	setvar RIVAL_STARTER_SPECIES, SPECIES_SQUIRTLE
-	setvar RIVAL_STARTER_ID, LOCALID_SQUIRTLE_BALL
-	goto_if_ge VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB, 3, PalletTown_ProfessorOaksLab_EventScript_LastPokeBall
-	goto_if_eq VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB, 2, PalletTown_ProfessorOaksLab_EventScript_ConfirmStarterChoice
-	msgbox PalletTown_ProfessorOaksLab_Text_ThoseArePokeBalls
-	release
-	end
 
 PalletTown_ProfessorOaksLab_EventScript_LastPokeBall::
 	msgbox PalletTown_ProfessorOaksLab_Text_OaksLastMon

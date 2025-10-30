@@ -242,9 +242,21 @@ gOakSpeech_Text_LetsGo::
     .string "A world of dreams and adventures\n"
     .string "with POKéMON awaits! Let's go!$"
 
+// Randomizer Question
+gOakSpeech_Text_RandomizerInfo::
+    .string "Before you go, another thing.\p"
+    .string "Would you like to enable the\n"
+    .string "POKéMON Randomizer?\p"
+    .string "Wild POKéMON and your starter will\n"
+    .string "be completely randomized!\l"
+    .string "This adds unpredictability to your\l"
+    .string "adventure.\p"
+    .string "This choice cannot be undone.\n"
+    .string "Enable the Randomizer?$"
+
 // Nuzlocke & Soul Link Text
 gOakSpeech_Text_NuzlockeInfo::
-    .string "Before you go, one last thing.\p"
+    .string "Also, would you like to enable the\n"
     .string "Would you like to enable the\n"
     .string "Nuzlocke Challenge rules?\p"
     .string "Any POKéMON that faints is lost\n"

@@ -17,6 +17,9 @@
 #include "constants/abilities.h"
 #include "constants/items.h"
 
+// for random
+#include "constants/species.h"
+
 #define MAX_ENCOUNTER_RATE 1600
 
 #define HEADER_NONE 0xFFFF
@@ -227,6 +230,30 @@ static void GenerateWildMon(u16 species, u8 level, u8 slot)
 {
     u32 personality;
     s8 chamber;
+
+    // --- RANDOMIZER CODE ---
+    if (FlagGet(FLAG_WILD_RANDOMIZER_ENABLED) == TRUE)
+    {
+        u16 newSpecies;
+        
+        // Loop to make sure we pick a valid species
+        do
+        {
+            // Generate random number from 1 to 411
+            newSpecies = (Random() % 411) + 1;
+        }
+        // Exclude:
+        // - SPECIES_NONE (0, but can't be generated with our +1)
+        // - SPECIES_UNOWN (201)
+        // - SPECIES_OLD_UNOWN_B through SPECIES_OLD_UNOWN_Z (252-276) - these are invalid placeholders
+        // - SPECIES_EGG (412, but can't be generated since we mod 411)
+        while (newSpecies == SPECIES_UNOWN || 
+               (newSpecies >= SPECIES_OLD_UNOWN_B && newSpecies <= SPECIES_OLD_UNOWN_Z));
+        
+        species = newSpecies;
+    }
+    // --- END RANDOMIZER CODE ---
+
     ZeroEnemyPartyMons();
     if (species != SPECIES_UNOWN)
     {
@@ -234,6 +261,8 @@ static void GenerateWildMon(u16 species, u8 level, u8 slot)
     }
     else
     {
+        // This block is now ONLY entered if the randomizer is OFF
+        // and you are in a legitimate Unown chamber.
         chamber = gSaveBlock1Ptr->location.mapNum - MAP_NUM(MAP_SEVEN_ISLAND_TANOBY_RUINS_MONEAN_CHAMBER);
         personality = GenerateUnownPersonalityByLetter(sUnownLetterSlots[chamber][slot]);
         CreateMon(&gEnemyParty[0], species, level, USE_RANDOM_IVS, TRUE, personality, FALSE, 0);
