@@ -9803,11 +9803,23 @@ static void Cmd_trygivecaughtmonnick(void)
     switch (gBattleCommunication[MULTIUSE_STATE])
     {
     case 0:
-        HandleBattleWindow(23, 8, 29, 13, 0);
-        BattlePutTextOnWindow(gText_BattleYesNoChoice, B_WIN_YESNO);
-        gBattleCommunication[MULTIUSE_STATE]++;
-        gBattleCommunication[CURSOR_POSITION] = 0;
-        BattleCreateYesNoCursorAt();
+        // --- NUZLOCKE MODIFICATION START ---
+        if (VarGet(VAR_NUZLOCKE_ACTIVE) == 1)
+        {
+            // Nuzlocke is active. Skip Yes/No and go straight to naming.
+            gBattleCommunication[MULTIUSE_STATE] = 2; // Go to state 2 (naming screen)
+            gBattleCommunication[CURSOR_POSITION] = 0; // We're "choosing" Yes
+        }
+        // --- NUZLOCKE MODIFICATION END ---
+        else
+        {
+            // Original code for showing Yes/No box
+            HandleBattleWindow(23, 8, 29, 13, 0);
+            BattlePutTextOnWindow(gText_BattleYesNoChoice, B_WIN_YESNO);
+            gBattleCommunication[MULTIUSE_STATE]++; // Go to state 1 (handle input)
+            gBattleCommunication[CURSOR_POSITION] = 0;
+            BattleCreateYesNoCursorAt();
+        }
         break;
     case 1:
         if (JOY_NEW(DPAD_UP) && gBattleCommunication[CURSOR_POSITION] != 0)

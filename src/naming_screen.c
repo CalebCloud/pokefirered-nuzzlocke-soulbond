@@ -680,7 +680,58 @@ static bool8 MainState_MoveToOKButton(void)
 
 static bool8 MainState_PressedOKButton(void)
 {
-    SaveInputText();
+    // --- NUZLOCKE MODIFICATION v3 START ---
+    if (sNamingScreen->templateNum == NAMING_SCREEN_CAUGHT_MON
+     || sNamingScreen->templateNum == NAMING_SCREEN_NICKNAME)
+    {
+        if (VarGet(VAR_NUZLOCKE_ACTIVE) == 1)
+        {
+            u8 defaultName[POKEMON_NAME_LENGTH + 1];
+            u8 processedName[POKEMON_NAME_LENGTH + 1];
+            s32 i, j;
+            u8 *startPtr; // Pointer to the first non-space character
+
+            // 1. Copy the input name, ensuring termination
+            StringCopyN(processedName, sNamingScreen->textBuffer, POKEMON_NAME_LENGTH + 1);
+            processedName[POKEMON_NAME_LENGTH] = EOS;
+
+            // 2. Find the first non-space character (trim leading spaces)
+            startPtr = processedName;
+            while (*startPtr == CHAR_SPACE)
+            {
+                startPtr++;
+            }
+
+            // Check 1: Is the name effectively empty after removing leading spaces?
+            if (*startPtr == EOS)
+            {
+                PlaySE(SE_FAILURE);
+                sNamingScreen->state = STATE_HANDLE_INPUT;
+                return FALSE; // Stay on naming screen
+            }
+
+            // 3. Trim trailing spaces (working from the end of the string pointed to by startPtr)
+            i = StringLength(startPtr) - 1;
+            while (i >= 0 && startPtr[i] == CHAR_SPACE)
+            {
+                startPtr[i] = EOS; // Terminate the string after the last non-space character
+                i--;
+            }
+
+            // Check 2: Is the processed (leading and trailing trimmed) name identical to the default species name?
+            StringCopy(defaultName, gSpeciesNames[sNamingScreen->monSpecies]);
+            if (StringCompare(startPtr, defaultName) == 0)
+            {
+                PlaySE(SE_FAILURE);
+                sNamingScreen->state = STATE_HANDLE_INPUT;
+                return FALSE; // Stay on naming screen
+            }
+        }
+    }
+    // --- NUZLOCKE MODIFICATION v3 END ---
+
+    // Original code continues below
+    SaveInputText(); // Save the original input text
     SetInputState(INPUT_STATE_DISABLED);
     SetCursorFlashing(FALSE);
     TryStartButtonFlash(BUTTON_COUNT, FALSE, TRUE);
@@ -694,7 +745,7 @@ static bool8 MainState_PressedOKButton(void)
     else
     {
         sNamingScreen->state = STATE_FADE_OUT;
-        return TRUE;  //Exit the naming screen
+        return TRUE;
     }
 }
 

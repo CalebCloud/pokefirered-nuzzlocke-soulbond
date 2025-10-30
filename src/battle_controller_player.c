@@ -24,6 +24,9 @@
 #include "constants/songs.h"
 #include "constants/sound.h"
 
+#include "event_data.h"
+#include "constants/battle_string_ids.h"
+
 static void PlayerHandleGetMonData(void);
 static void PlayerHandleSetMonData(void);
 static void PlayerHandleSetRawMonData(void);
@@ -2372,13 +2375,29 @@ static void PlayerDoMoveAnimation(void)
 
 static void PlayerHandlePrintString(void)
 {
-    u16 *stringId;
+    u16 *stringIdPtr; // Original variable
+    u16 stringId;     // New variable to hold the ID
 
     gBattle_BG0_X = 0;
     gBattle_BG0_Y = 0;
-    stringId = (u16 *)(&gBattleBufferA[gActiveBattler][2]);
-    BufferStringBattle(*stringId);
-    if (BattleStringShouldBeColored(*stringId))
+    stringIdPtr = (u16 *)(&gBattleBufferA[gActiveBattler][2]);
+    stringId = *stringIdPtr; // Get the string ID
+
+    // --- NUZLOCKE MODIFICATION START ---
+    // Check if Nuzlocke is on AND if the string is the "Give nickname?" one.
+    // The ID in the buffer is the UN-adjusted one.
+    if (stringId == STRINGID_GIVENICKNAMECAPTURED // <-- THIS IS THE FIX
+     && VarGet(VAR_NUZLOCKE_ACTIVE) == 1)
+    {
+        // Skip printing the string and tell the game to run the next command
+        PlayerBufferExecCompleted(); 
+        return;
+    }
+    // --- NUZLOCKE MODIFICATION END ---
+
+    // Original code
+    BufferStringBattle(stringId);
+    if (BattleStringShouldBeColored(stringId))
         BattlePutTextOnWindow(gDisplayedStringBattle, (B_WIN_MSG | B_TEXT_FLAG_NPC_CONTEXT_FONT));
     else
         BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MSG);
