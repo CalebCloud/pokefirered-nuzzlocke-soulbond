@@ -19,6 +19,16 @@
 
 // for random
 #include "constants/species.h"
+#include "constants/vars.h"
+
+// Helper function to get the flag for current route
+static u16 GetNuzlockeRouteEncounteredFlag(void)
+{
+    u16 mapSection = gMapHeader.regionMapSectionId;
+    
+    // Base flag + map section ID gives unique flag per area
+    return FLAG_NUZLOCKE_ROUTE_BASE + mapSection;
+}
 
 #define MAX_ENCOUNTER_RATE 1600
 
@@ -226,10 +236,42 @@ static bool8 UnlockedTanobyOrAreNotInTanoby(void)
     return FALSE;
 }
 
+static bool8 ShouldBlockNuzlockeEncounter(void)
+{
+    u16 encounterFlag;
+    
+    // Only apply if Nuzlocke is active
+    if (VarGet(VAR_NUZLOCKE_ACTIVE) != 1)
+        return FALSE;
+    
+    // NEW: Check if encounters should even be tracked yet
+    if (!FlagGet(FLAG_NUZLOCKE_ENCOUNTERS_ACTIVE))
+        return FALSE;  // Haven't gotten Poké Balls yet, don't track
+    
+    // Get the flag for current route
+    encounterFlag = GetNuzlockeRouteEncounteredFlag();
+    
+    // If we've already had first encounter here, block catching
+    if (FlagGet(encounterFlag))
+    {
+        // Mark this encounter as "already caught on this route"
+        FlagSet(FLAG_NUZLOCKE_TEMP_BLOCK_CATCH);
+        return FALSE;  // Don't block the battle, just block catching
+    }
+    
+    // First encounter on this route - mark it
+    FlagSet(encounterFlag);
+    FlagClear(FLAG_NUZLOCKE_TEMP_BLOCK_CATCH);
+    return FALSE;
+}
+
 static void GenerateWildMon(u16 species, u8 level, u8 slot)
 {
     u32 personality;
     s8 chamber;
+
+    // --- NUZLOCKE ENCOUNTER TRACKING ---
+    ShouldBlockNuzlockeEncounter();  // Track first encounters per route
 
     // --- RANDOMIZER CODE ---
     if (FlagGet(FLAG_WILD_RANDOMIZER_ENABLED) == TRUE)

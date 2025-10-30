@@ -355,3 +355,8 @@ PalletTown_ProfessorOaksLab_Text_RivalIllCompleteThePokedex::
     .string "ONE ISLAND first…\p"
     .string "Anyways, I'm outta here!$"
 
+PalletTown_ProfessorOaksLab_Text_NuzlockeNowActive::
+	.string "Your Nuzlocke Challenge has begun!\p"
+	.string "Remember: You may only catch the\n"
+	.string "first POKéMON you encounter in\l"
+	.string "each new area!$"

@@ -122,6 +122,12 @@ BattleScript_TrainerBallBlock::
 	waitmessage B_WAIT_TIME_LONG
 	finishaction
 
+BattleScript_NuzlockeRouteBlock::
+	waitmessage B_WAIT_TIME_LONG
+	printstring STRINGID_NUZLOCKE_ROUTE_BLOCK
+	waitmessage B_WAIT_TIME_LONG
+	finishaction
+
 BattleScript_GhostBallDodge::
 	waitmessage B_WAIT_TIME_LONG
 	printstring STRINGID_ITDODGEDBALL

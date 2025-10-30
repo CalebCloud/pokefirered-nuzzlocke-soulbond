@@ -531,7 +531,7 @@
 
 // Unused?
 #define FLAG_WILD_RANDOMIZER_ENABLED 0x1FF
-#define FLAG_0x200               0x200
+#define FLAG_NUZLOCKE_ENCOUNTERS_ACTIVE 0x200
 #define FLAG_0x201               0x201
 #define FLAG_0x202               0x202
 #define FLAG_0x203               0x203
@@ -1317,6 +1317,13 @@
 #define FLAG_0x4FC               0x4FC
 #define FLAG_0x4FD               0x4FD
 #define FLAG_0x4FE               0x4FE
+
+// Nuzlocke encounter tracking (use 0x4FE and below for temp flags)
+#define FLAG_NUZLOCKE_TEMP_BLOCK_CATCH 0x4FE  // Use 0x4FE instead
+
+// Nuzlocke route flags (use 0x900-0x9FF to avoid conflicts)
+#define FLAG_NUZLOCKE_ROUTE_BASE 0x900  // 256 route flags from 0x900-0x9FF
+
 #define FLAG_0x4FF               0x4FF
 
 #define TRAINER_FLAGS_START      (FLAG_0x4FF + 1)

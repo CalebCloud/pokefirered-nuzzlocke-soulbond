@@ -175,6 +175,7 @@ void NuzlockeResetRun(void)
     bool8 randomizerEnabled;
     u16 nuzlockeActive;
     u16 soulLinkActive;
+    u16 i;
 
     // ===== PRESERVE CHALLENGE MODE SETTINGS BEFORE WIPE =====
     randomizerEnabled = FlagGet(FLAG_WILD_RANDOMIZER_ENABLED);
@@ -233,6 +234,15 @@ void NuzlockeResetRun(void)
     
     // Clear temp flag so starters get re-randomized
     FlagClear(FLAG_TEMP_1);
+    
+    // Clear all Nuzlocke route encounter flags (0x900-0x9FF range)
+    for (i = 0x900; i < 0xA00; i++)
+    {
+        FlagClear(i);
+    }
+    
+    // Clear the "encounters active" flag so player must get Poké Balls again
+    FlagClear(FLAG_NUZLOCKE_ENCOUNTERS_ACTIVE);
 }
 
 static void ResetMiniGamesResults(void)

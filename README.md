@@ -1,12 +1,12 @@
 # PokéFireRed – Nuzlocke + Soul-Link + Randomizer
 
-A comprehensive patch adding Nuzlocke, Soul-Link, and Randomizer functionality to Pokémon FireRed, complete with permadeath mechanics, white-out handling, and fully randomized encounters.
+A comprehensive patch adding Nuzlocke, Soul-Link, and Randomizer functionality to Pokémon FireRed, complete with permadeath mechanics, white-out handling, fully randomized encounters, and first-encounter-per-route enforcement.
 
 ---
 
 ## Overview
 
-This patch implements Nuzlocke rules, Soul-Link toggles, and a Wild Pokémon Randomizer for FireRed. It includes core permadeath mechanics, proper white-out handling, forced nicknaming for wild captures, and complete randomization of wild encounters and starter selection.
+This patch implements Nuzlocke rules, Soul-Link toggles, and a Wild Pokémon Randomizer for FireRed. It includes core permadeath mechanics, proper white-out handling, forced nicknaming for wild captures, complete randomization of wild encounters and starter selection, and classic Nuzlocke first-encounter-per-route enforcement.
 
 ---
 
@@ -17,7 +17,7 @@ This patch implements Nuzlocke rules, Soul-Link toggles, and a Wild Pokémon Ran
 - **In-game configuration**: Enable Randomizer, Nuzlocke, and Soul-Link modes during Professor Oak's introduction
 - **Three independent challenge modes**:
   - **Randomizer**: Completely randomizes wild Pokémon encounters and starter selection
-  - **Nuzlocke**: Traditional permadeath and first-encounter rules
+  - **Nuzlocke**: Traditional permadeath and first-encounter-per-route rules
   - **Soul-Link**: Paired Pokémon system for two-player runs
 - **Mix and match**: Enable any combination of the three modes for varied difficulty
 - **Debug toggles**: Quick-enable all modes via debug tile on Player's House 2F for testing
@@ -37,6 +37,23 @@ Complete randomization of wild Pokémon and starter selection:
 - **Smart exclusions**: Automatically excludes Unown (201), invalid placeholder species (252-276), and egg species (412)
 - **No `??` Pokémon**: Robust validation ensures only valid species appear
 
+### Nuzlocke First Encounter System
+
+Classic Nuzlocke route encounter enforcement with intelligent activation:
+
+- **Delayed activation**: First encounter tracking begins only after receiving Poké Balls from Oak
+  - Before Poké Balls: Wild encounters happen normally without tracking
+  - After receiving Poké Balls: Message displays "Your Nuzlocke Challenge has begun!"
+  - From this point forward, first encounters are tracked per route/area
+- **Per-route tracking**: Automatic flag system tracks first encounter in each of 256 possible areas
+  - Uses map section ID for dynamic route identification
+  - Route 1, Route 2, Viridian Forest, etc. each get independent tracking
+- **Catch blocking**: After first encounter on a route, attempting to throw a Poké Ball shows:
+  - Blocked ball animation (same as trainer battles)
+  - Message: "You've already caught a POKéMON on this route!"
+  - Can still battle, flee, or defeat wild Pokémon—just can't catch
+- **Reset behavior**: On Nuzlocke reset, all route flags clear for fresh run
+
 ### Nuzlocke Reset System
 
 Full game reset with selective preservation:
@@ -55,7 +72,8 @@ Full game reset with selective preservation:
   - Bag contents and key items
   - Pokédex data
   - Badges and story progress
-  - All event flags
+  - All event flags (including route encounter flags)
+  - First encounter tracking (must get Poké Balls again)
 - **Fresh start**: Spawns in bedroom, ready to get new starter with re-randomized options
 
 ### Permadeath System
@@ -103,22 +121,35 @@ Complete overhaul of the defeat system with Nuzlocke-aware logic:
 3. **Starter selection**: 
    - With Randomizer: Three random Pokémon appear (fixed for that playthrough)
    - Without Randomizer: Normal Bulbasaur/Squirtle/Charmander selection
-4. **Wild encounters**: 
+4. **Receive Poké Balls**: Oak gives 5 Poké Balls after delivering parcel
+   - If Nuzlocke enabled: "Your Nuzlocke Challenge has begun!" message displays
+   - First encounter tracking activates from this point forward
+5. **Wild encounters**: 
    - With Randomizer: Every wild Pokémon is randomly selected from 385 valid species
    - Without Randomizer: Normal encounter tables apply
-5. **During battle**: Any Pokémon fainting under Nuzlocke rules is permanently marked as dead
-6. **Wild Capture & Starters**: Under Nuzlocke, player is forced to provide a unique nickname
-7. **On white-out**:
+6. **First encounter per route**: 
+   - First wild encounter on each route: Can catch normally
+   - Subsequent encounters on same route: Poké Ball is blocked with message
+   - Different routes: Fresh first encounter available
+7. **During battle**: Any Pokémon fainting under Nuzlocke rules is permanently marked as dead
+8. **Wild Capture & Starters**: Under Nuzlocke, player is forced to provide a unique nickname
+9. **On white-out**:
    - System automatically checks PC boxes for living Pokémon
    - If none exist → Full reset preserving names and challenge modes
    - If survivors exist → Player chooses to continue with boxed team or reset
    - Reset wipes everything except names and challenge mode flags
-   - Starters are re-randomized for the new run
-8. **First rival loss**: Uses same white-out router as regular defeats
+   - Starters are re-randomized and route flags cleared for the new run
+10. **First rival loss**: Uses same white-out router as regular defeats
 
 ---
 
 ## Known Limitations & Planned Improvements
+
+### Minor: Poké Ball Consumption on Blocked Catch
+
+**Current**: When attempting to catch on a "used" route, the Poké Ball is consumed even though catch is blocked  
+**Impact**: Minor resource waste, but provides feedback that route is already used  
+**Planned**: Investigate preventing ball consumption on blocked attempts
 
 ### Rival Battle Randomization
 
@@ -130,12 +161,24 @@ Complete overhaul of the defeat system with Nuzlocke-aware logic:
 **Current**: Only wild Pokémon and player/rival starters are randomized  
 **Not implemented**: NPC trainer teams remain unchanged
 
-### Route Encounter Locks
+### Advanced Nuzlocke Rules
 
-**Not implemented**: First-encounter-only rules per route/area  
-**Needed**: Per-route flag system to track first encounters
+**Not implemented**: Optional variants like:
+- Shiny clause (allow catching shinies even on used routes)
+- Dupes clause (re-roll if first encounter is duplicate of owned species)
+- Separate encounter slots for fishing/surfing vs grass
+- Gift Pokémon and static encounter handling
 
 ### Nickname Enforcement for Trades/Gifts
 
 **Current**: Forced nicknaming only applies to wild captures and starter selection  
 **Not implemented**: In-game trades and gift Pokémon don't enforce nicknames under Nuzlocke
+
+---
+
+## Technical Implementation Notes
+
+### Flag System
+- `FLAG_NUZLOCKE_ENCOUNTERS_ACTIVE (0x200)`: Master switch set when Oak gives Poké Balls
+- `FLAG_NUZLOCKE_TEMP_BLOCK_CATCH (0x4FE)`: Temporary battle flag signaling "catch blocked"
+- `FLAG_NUZLOCKE_ROUTE_BASE (0x900-0x9FF)`: 256 dynamic route flags, auto-assigned by map section ID

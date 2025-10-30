@@ -39,6 +39,8 @@
 
 #include "event_data.h"          // declares VarGet / VarSet / VarPtr
 #include "constants/vars.h"      // declares VAR_NUZLOCKE_ACTIVE
+#include "constants/flags.h"
+#include "battle_scripts.h" 
 
 extern const u8 *const gBattleScriptsForMoveEffects[];
 
@@ -9494,13 +9496,20 @@ static void Cmd_handleballthrow(void)
         MarkBattlerForControllerExec(gActiveBattler);
         gBattlescriptCurrInstr = BattleScript_TrainerBallBlock;
     }
+    // NEW: Nuzlocke route encounter check
+    else if (VarGet(VAR_NUZLOCKE_ACTIVE) == 1 && FlagGet(FLAG_NUZLOCKE_TEMP_BLOCK_CATCH))
+    {
+        BtlController_EmitBallThrowAnim(BUFFER_A, BALL_TRAINER_BLOCK);
+        MarkBattlerForControllerExec(gActiveBattler);
+        gBattlescriptCurrInstr = BattleScript_NuzlockeRouteBlock;
+    }
     else if (gBattleTypeFlags & (BATTLE_TYPE_POKEDUDE | BATTLE_TYPE_OLD_MAN_TUTORIAL))
     {
         BtlController_EmitBallThrowAnim(BUFFER_A, BALL_3_SHAKES_SUCCESS);
         MarkBattlerForControllerExec(gActiveBattler);
         gBattlescriptCurrInstr = BattleScript_OldMan_Pokedude_CaughtMessage;
     }
-    else
+    else  // NORMAL WILD BATTLE - THIS WAS MISSING!
     {
         u32 odds;
         u8 catchRate;
@@ -9602,12 +9611,12 @@ static void Cmd_handleballthrow(void)
             for (shakes = 0; shakes < BALL_3_SHAKES_SUCCESS && Random() < odds; shakes++);
 
             if (gLastUsedItem == ITEM_MASTER_BALL)
-                shakes = BALL_3_SHAKES_SUCCESS; // why calculate the shakes before that check?
+                shakes = BALL_3_SHAKES_SUCCESS;
 
             BtlController_EmitBallThrowAnim(BUFFER_A, shakes);
             MarkBattlerForControllerExec(gActiveBattler);
 
-            if (shakes == BALL_3_SHAKES_SUCCESS) // mon caught, copy of the code above
+            if (shakes == BALL_3_SHAKES_SUCCESS) // mon caught
             {
                 gBattlescriptCurrInstr = BattleScript_SuccessBallThrow;
                 SetMonData(&gEnemyParty[gBattlerPartyIndexes[gBattlerTarget]], MON_DATA_POKEBALL, &gLastUsedItem);
@@ -9625,7 +9634,6 @@ static void Cmd_handleballthrow(void)
         }
     }
 }
-
 static void Cmd_givecaughtmon(void)
 {
     if (GiveMonToPlayer(&gEnemyParty[gBattlerPartyIndexes[gBattlerAttacker ^ BIT_SIDE]]) != MON_GIVEN_TO_PARTY)

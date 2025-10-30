@@ -675,6 +675,16 @@ PalletTown_ProfessorOaksLab_EventScript_ReceiveDexScene::
 	setvar VAR_MAP_SCENE_POKEMON_CENTER_TEALA, 1
 	msgbox PalletTown_ProfessorOaksLab_Text_OakCatchMonsForDataTakeThese
 	giveitem_msg PalletTown_ProfessorOaksLab_Text_ReceivedFivePokeBalls, ITEM_POKE_BALL, 5
+	
+	@ NEW: Activate Nuzlocke encounter tracking if Nuzlocke is on
+	goto_if_eq VAR_NUZLOCKE_ACTIVE, 1, PalletTown_ProfessorOaksLab_EventScript_ActivateNuzlocke
+	goto PalletTown_ProfessorOaksLab_EventScript_ContinueAfterPokeballs
+
+PalletTown_ProfessorOaksLab_EventScript_ActivateNuzlocke:
+	setflag FLAG_NUZLOCKE_ENCOUNTERS_ACTIVE
+	msgbox PalletTown_ProfessorOaksLab_Text_NuzlockeNowActive, MSGBOX_DEFAULT
+
+PalletTown_ProfessorOaksLab_EventScript_ContinueAfterPokeballs:
 	msgbox PalletTown_ProfessorOaksLab_Text_OakExplainCatching
 	famechecker FAMECHECKER_OAK, 1
 	msgbox PalletTown_ProfessorOaksLab_Text_OakCompleteMonGuideWasMyDream
