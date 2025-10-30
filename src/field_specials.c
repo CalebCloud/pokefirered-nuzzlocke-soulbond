@@ -44,6 +44,7 @@
 
 #include "pokemon.h"
 #include "constants/pokemon.h"
+#include "new_game.h"
 
 static EWRAM_DATA u8 sElevatorCurrentFloorWindowId = 0;
 static EWRAM_DATA u16 sElevatorScroll = 0;
@@ -2580,4 +2581,9 @@ static void Task_WingFlapSound(u8 taskId)
     }
     if (data[0] == gSpecialVar_0x8004 - 1)
         DestroyTask(taskId);
+}
+
+void Special_NuzlockeResetRun(void)
+{
+    NuzlockeResetRun();
 }

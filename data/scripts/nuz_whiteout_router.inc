@@ -46,17 +46,22 @@ EventScript_Nuz_ForceReset:
     releaseall
     goto EventScript_Nuz_ResetRun
 
-@ --- Minimal reset routine (stub) ---
-@ For now: warp to bedroom (same debug start you already use).
-@ Expand later to clear badges, wipe party/boxes, money, etc.
+@ --- FULL RESET ROUTINE ---
+@ Preserves: Player name, rival name, challenge mode flags (Randomizer/Nuzlocke/Soul-Link)
+@ Wipes: Party, PC boxes, money, bag, key items, Pokédex, badges, story flags, etc.
 EventScript_Nuz_ResetRun:
-    @ optional: ensure Nuz stays ON (and Soul-Link preserved/cleared as you want)
-    setvar VAR_NUZLOCKE_ACTIVE, 1
-
-    @ Set respawn sane and warp to bedroom 2F (adjust constants for your project)
+    lockall
+    msgbox Nuz_Text_ResettingRun, MSGBOX_DEFAULT
+    closemessage
+    
+    @ Perform the full game reset (preserves names and challenge modes)
+    special Special_NuzlockeResetRun
+    
+    @ Now manually set the warp since we're in script context
     setrespawn HEAL_LOCATION_PALLET_TOWN
-    warp MAP_PALLET_TOWN_PLAYERS_HOUSE_2F, 255, 10, 2
+    warp MAP_PALLET_TOWN_PLAYERS_HOUSE_2F, 255, 6, 6
     waitstate
+    releaseall
     end
 
 @ --- Text ---
@@ -68,6 +73,11 @@ Nuz_Text_ContinueOrReset::
     .string "NO  = Reset run.$"
 
 Nuz_Text_NoMonsForceReset::
-    .string "You have no living Pokemon\n"
+    .string "You have no living POKéMON\n"
     .string "left in your PC.\p"
     .string "Starting a NEW RUN now.$"
+
+Nuz_Text_ResettingRun::
+    .string "Resetting your adventure...\p"
+    .string "Your challenge modes remain active!\n"
+    .string "Good luck on your new run!$"

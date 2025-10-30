@@ -453,4 +453,5 @@ gSpecials::
 	def_special LoopWingFlapSound
 	def_special CreateEnemyEventMon
 	def_special Special_Nuz_PCHasLivingMons
+	def_special Special_NuzlockeResetRun
 gSpecialsEnd::

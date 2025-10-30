@@ -169,6 +169,72 @@ void NewGameInitData(void)
     VarSet(VAR_SOUL_LINK_ACTIVE, soulLinkActive);
 }
 
+void NuzlockeResetRun(void)
+{
+    u8 rivalName[PLAYER_NAME_LENGTH + 1];
+    bool8 randomizerEnabled;
+    u16 nuzlockeActive;
+    u16 soulLinkActive;
+
+    // ===== PRESERVE CHALLENGE MODE SETTINGS BEFORE WIPE =====
+    randomizerEnabled = FlagGet(FLAG_WILD_RANDOMIZER_ENABLED);
+    nuzlockeActive = VarGet(VAR_NUZLOCKE_ACTIVE);
+    soulLinkActive = VarGet(VAR_SOUL_LINK_ACTIVE);
+
+    StringCopy(rivalName, gSaveBlock1Ptr->rivalName);
+    gDifferentSaveFile = TRUE;
+    gSaveBlock2Ptr->encryptionKey = 0;
+    ZeroPlayerPartyMons();
+    ZeroEnemyPartyMons();
+    ClearBattleTower();
+    ClearSav1();
+    ClearMailData();
+    gSaveBlock2Ptr->specialSaveWarpFlags = 0;
+    gSaveBlock2Ptr->gcnLinkFlags = 0;
+    gSaveBlock2Ptr->unkFlag1 = TRUE;
+    gSaveBlock2Ptr->unkFlag2 = FALSE;
+    InitPlayerTrainerId();
+    PlayTimeCounter_Reset();
+    ClearPokedexFlags();
+    InitEventData();
+    ResetFameChecker();
+    SetMoney(&gSaveBlock1Ptr->money, 3000);
+    ResetGameStats();
+    ClearPlayerLinkBattleRecords();
+    InitHeracrossSizeRecord();
+    InitMagikarpSizeRecord();
+    EnableNationalPokedex_RSE();
+    gPlayerPartyCount = 0;
+    ZeroPlayerPartyMons();
+    ResetPokemonStorageSystem();
+    ClearRoamerData();
+    gSaveBlock1Ptr->registeredItem = 0;
+    ClearBag();
+    NewGameInitPCItems();
+    ClearEnigmaBerries();
+    InitEasyChatPhrases();
+    ResetTrainerFanClub();
+    UnionRoomChat_InitializeRegisteredTexts();
+    ResetMiniGamesResults();
+    ClearMysteryGift();
+    SetAllRenewableItemFlags();
+    
+    // DON'T call WarpToPlayersRoom() - let the script handle the warp
+    
+    RunScriptImmediately(EventScript_ResetAllMapFlags);
+    StringCopy(gSaveBlock1Ptr->rivalName, rivalName);
+    ResetTrainerTowerResults();
+
+    // ===== RESTORE CHALLENGE MODE SETTINGS AFTER WIPE =====
+    if (randomizerEnabled)
+        FlagSet(FLAG_WILD_RANDOMIZER_ENABLED);
+    VarSet(VAR_NUZLOCKE_ACTIVE, nuzlockeActive);
+    VarSet(VAR_SOUL_LINK_ACTIVE, soulLinkActive);
+    
+    // Clear temp flag so starters get re-randomized
+    FlagClear(FLAG_TEMP_1);
+}
+
 static void ResetMiniGamesResults(void)
 {
     CpuFill16(0, &gSaveBlock2Ptr->berryCrush, sizeof(struct BerryCrush));

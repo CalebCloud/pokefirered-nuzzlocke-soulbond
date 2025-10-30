@@ -1193,29 +1193,68 @@ PalletTown_ProfessorOaksLab_EventScript_CharmanderBall_Continue:
 PalletTown_ProfessorOaksLab_EventScript_RandomizeAllThreeStarters::
 	@ Generate random starter 1 (for Bulbasaur ball) and store in VAR_TEMP_5
 PalletTown_ProfessorOaksLab_EventScript_RerollStarter1:
-	random 386
+	random 411  @ Changed from 386 to 411 (max valid species)
 	addvar VAR_RESULT, 1
 	copyvar VAR_0x8005, VAR_RESULT
+	
+	@ Check if it's Unown (201)
 	compare VAR_0x8005, SPECIES_UNOWN
 	goto_if 1, PalletTown_ProfessorOaksLab_EventScript_RerollStarter1
+	
+	@ Check if it's in the invalid range (252-276: old Unown forms)
+	compare VAR_0x8005, 252
+	goto_if 5, PalletTown_ProfessorOaksLab_EventScript_CheckStarter1Upper  @ goto_if 5 = goto_if_ge (greater or equal)
+	goto PalletTown_ProfessorOaksLab_EventScript_Starter1Valid
+
+PalletTown_ProfessorOaksLab_EventScript_CheckStarter1Upper:
+	compare VAR_0x8005, 276
+	goto_if 3, PalletTown_ProfessorOaksLab_EventScript_RerollStarter1  @ goto_if 3 = goto_if_le (less or equal)
+
+PalletTown_ProfessorOaksLab_EventScript_Starter1Valid:
 	copyvar VAR_TEMP_5, VAR_RESULT  @ Store starter 1
 
 	@ Generate random starter 2 (for Squirtle ball) and store in VAR_TEMP_6
 PalletTown_ProfessorOaksLab_EventScript_RerollStarter2:
-	random 386
+	random 411
 	addvar VAR_RESULT, 1
 	copyvar VAR_0x8005, VAR_RESULT
+	
+	@ Check if it's Unown (201)
 	compare VAR_0x8005, SPECIES_UNOWN
 	goto_if 1, PalletTown_ProfessorOaksLab_EventScript_RerollStarter2
+	
+	@ Check if it's in the invalid range (252-276)
+	compare VAR_0x8005, 252
+	goto_if 5, PalletTown_ProfessorOaksLab_EventScript_CheckStarter2Upper
+	goto PalletTown_ProfessorOaksLab_EventScript_Starter2Valid
+
+PalletTown_ProfessorOaksLab_EventScript_CheckStarter2Upper:
+	compare VAR_0x8005, 276
+	goto_if 3, PalletTown_ProfessorOaksLab_EventScript_RerollStarter2
+
+PalletTown_ProfessorOaksLab_EventScript_Starter2Valid:
 	copyvar VAR_TEMP_6, VAR_RESULT  @ Store starter 2
 
 	@ Generate random starter 3 (for Charmander ball) and store in VAR_TEMP_7
 PalletTown_ProfessorOaksLab_EventScript_RerollStarter3:
-	random 386
+	random 411
 	addvar VAR_RESULT, 1
 	copyvar VAR_0x8005, VAR_RESULT
+	
+	@ Check if it's Unown (201)
 	compare VAR_0x8005, SPECIES_UNOWN
 	goto_if 1, PalletTown_ProfessorOaksLab_EventScript_RerollStarter3
+	
+	@ Check if it's in the invalid range (252-276)
+	compare VAR_0x8005, 252
+	goto_if 5, PalletTown_ProfessorOaksLab_EventScript_CheckStarter3Upper
+	goto PalletTown_ProfessorOaksLab_EventScript_Starter3Valid
+
+PalletTown_ProfessorOaksLab_EventScript_CheckStarter3Upper:
+	compare VAR_0x8005, 276
+	goto_if 3, PalletTown_ProfessorOaksLab_EventScript_RerollStarter3
+
+PalletTown_ProfessorOaksLab_EventScript_Starter3Valid:
 	copyvar VAR_TEMP_7, VAR_RESULT  @ Store starter 3
 
 	@ Set flag so we don't randomize again

@@ -22,6 +22,7 @@ This patch implements Nuzlocke rules, Soul-Link toggles, and a Wild Pokémon Ran
 - **Mix and match**: Enable any combination of the three modes for varied difficulty
 - **Debug toggles**: Quick-enable all modes via debug tile on Player's House 2F for testing
 - **Status display**: Check active modes via NES console in Player's House 2F
+- **Persistent settings**: Challenge mode choices survive game initialization and save/load
 
 ### Randomizer System
 
@@ -31,12 +32,35 @@ Complete randomization of wild Pokémon and starter selection:
 - **Starter selection**: Three random Pokémon replace Bulbasaur, Squirtle, and Charmander
   - Randomization happens once when first entering Oak's Lab
   - Same three choices persist if player declines and tries different balls
+  - Starters re-randomize on Nuzlocke reset for fresh runs
 - **Rival starter**: Rival receives a random Pokémon independent from player's choices
-- **Smart exclusions**: Automatically excludes Unown, invalid placeholder species (252-276), and egg species
+- **Smart exclusions**: Automatically excludes Unown (201), invalid placeholder species (252-276), and egg species (412)
+- **No `??` Pokémon**: Robust validation ensures only valid species appear
+
+### Nuzlocke Reset System
+
+Full game reset with selective preservation:
+
+- **Automatic on wipe**: When all Pokémon are dead, automatic reset after white-out
+- **Optional with survivors**: Choice to reset or continue if living Pokémon exist in PC
+- **Preserves**:
+  - Player name
+  - Rival name
+  - Randomizer setting
+  - Nuzlocke mode setting
+  - Soul-Link mode setting
+- **Wipes**:
+  - Party and PC boxes
+  - Money (resets to ₽3000)
+  - Bag contents and key items
+  - Pokédex data
+  - Badges and story progress
+  - All event flags
+- **Fresh start**: Spawns in bedroom, ready to get new starter with re-randomized options
 
 ### Permadeath System
 
-The patch introduces a persistent per-Pokémon death flag that works across all game systems:
+Persistent per-Pokémon death flag that works across all game systems:
 
 - **Automatic marking**: Player Pokémon are permanently marked as dead when they faint under Nuzlocke rules
 - **Comprehensive restrictions** for dead Pokémon:
@@ -59,7 +83,7 @@ Complete overhaul of the defeat system with Nuzlocke-aware logic:
 - **Dual entry points**: Separate flows for Pokémon Center and Home (Mom) variants
 - **Living Pokémon detection**: Automatically scans PC boxes for survivors
 - **Smart routing**:
-  - **No living Pokémon**: Immediate forced reset to start new run
+  - **No living Pokémon**: Immediate forced reset with preserved challenge modes
   - **Living Pokémon available**: Player choice to continue with boxed Pokémon or reset
 - **Clear prompts**: Explicit text explaining which choice continues the run vs. starting over
 - **Updated defeat text**: Vanilla messages updated to acknowledge Nuzlocke consequences
@@ -67,7 +91,7 @@ Complete overhaul of the defeat system with Nuzlocke-aware logic:
 
 ### First Rival Battle
 
-- Early rival battle defeat now properly triggers Nuzlocke white-out logic
+- Early rival battle defeat properly triggers Nuzlocke white-out logic
 - No more forgiving vanilla behavior on the first loss
 
 ---
@@ -75,54 +99,43 @@ Complete overhaul of the defeat system with Nuzlocke-aware logic:
 ## Current Behavior Summary
 
 1. **During Oak's intro**: Player chooses whether to enable Randomizer, Nuzlocke, and Soul-Link modes
-2. **Starter selection**: 
+2. **Settings persist**: Challenge mode selections survive through game initialization and save/load cycles
+3. **Starter selection**: 
    - With Randomizer: Three random Pokémon appear (fixed for that playthrough)
    - Without Randomizer: Normal Bulbasaur/Squirtle/Charmander selection
-3. **Wild encounters**: 
-   - With Randomizer: Every wild Pokémon is randomly selected
+4. **Wild encounters**: 
+   - With Randomizer: Every wild Pokémon is randomly selected from 385 valid species
    - Without Randomizer: Normal encounter tables apply
-4. **During battle**: Any Pokémon fainting under Nuzlocke rules is permanently marked as dead
-5. **Wild Capture & Starters**: Under Nuzlocke, player is forced to provide a unique nickname (cannot be empty, whitespace-only, or species name)
-6. **On white-out**:
+5. **During battle**: Any Pokémon fainting under Nuzlocke rules is permanently marked as dead
+6. **Wild Capture & Starters**: Under Nuzlocke, player is forced to provide a unique nickname
+7. **On white-out**:
    - System automatically checks PC boxes for living Pokémon
-   - If none exist → Automatic reset to new run
+   - If none exist → Full reset preserving names and challenge modes
    - If survivors exist → Player chooses to continue with boxed team or reset
-7. **First rival loss**: Uses same white-out router as regular defeats (no special treatment)
+   - Reset wipes everything except names and challenge mode flags
+   - Starters are re-randomized for the new run
+8. **First rival loss**: Uses same white-out router as regular defeats
 
 ---
 
 ## Known Limitations & Planned Improvements
 
-### Critical: Mode Persistence Issue
-
-**Current**: Game mode selections (Randomizer/Nuzlocke/Soul-Link) are not persisted after Oak's intro sequence  
-**Workaround**: Use debug tile in Player's House 2F to re-enable modes after loading saves  
-**Needed**: Proper flag/variable persistence system that survives the intro sequence
-
 ### Rival Battle Randomization
 
 **Current**: Rival's first battle team still uses default starter (not randomized)  
-**Needed**: Modify rival trainer battle data to use randomized species
+**Needed**: Modify rival trainer battle data to use randomized species from `RIVAL_STARTER_SPECIES`
 
 ### NPC Trainer Randomization
 
 **Current**: Only wild Pokémon and player/rival starters are randomized  
 **Not implemented**: NPC trainer teams remain unchanged
 
-### New-Run Reset Routine
-
-**Current**: Stub implementation  
-**Needed**: Full reset system that:
-
-- ✅ Preserves: Player name, rival name, Nuzlocke toggle, Soul-Link toggle, Soul-Link partner ID
-- ❌ Wipes: Party, PC boxes, money, bag contents, key items, Pokédex, badges, story flags, event flags, temporary variables, map visit state
-- 🎯 Respawns player in Player's House 2F (pre-starter selection)
-- 💾 Sets appropriate respawn point and performs clean save
-
 ### Route Encounter Locks
 
-- Enforce first-encounter-only rules per route/area
+**Not implemented**: First-encounter-only rules per route/area  
+**Needed**: Per-route flag system to track first encounters
 
-### Nickname Enforcement
+### Nickname Enforcement for Trades/Gifts
 
-- Doesn't yet apply to trades or in game gifts like your starter, only wild pokemon
+**Current**: Forced nicknaming only applies to wild captures and starter selection  
+**Not implemented**: In-game trades and gift Pokémon don't enforce nicknames under Nuzlocke
