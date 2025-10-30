@@ -6,7 +6,7 @@ A comprehensive patch adding Nuzlocke and Soul-Link functionality to Pokémon Fi
 
 ## Overview
 
-This patch implements first-pass Nuzlocke rules and Soul-Link toggles for FireRed. It includes core permadeath mechanics, proper white-out handling, and the groundwork for a full Nuzlocke experience.
+This patch implements first-pass Nuzlocke rules and Soul-Link toggles for FireRed. It includes core permadeath mechanics, proper white-out handling, forced nicknaming for wild captures, and the groundwork for a full Nuzlocke experience.
 
 ---
 
@@ -28,6 +28,12 @@ The patch introduces a persistent per-Pokémon death flag that works across all 
   - Cannot be revived with items or services
   - Display clear **DEAD** tag in party UI and summary screens
   - Menu interactions limited to safe actions (e.g., Summary only)
+
+### Nickname Enforcement (Wild Captures)
+
+-   **Required Nicknames**: Players are forced to nickname captured wild Pokémon under Nuzlocke rules.
+    -   Skips the "Give nickname?" prompt entirely.
+-   **Validation**: Blocks empty names, names consisting only of spaces, and names identical to the species' name (including leading/trailing spaces).
 
 ### White-Out Handling
 
