@@ -90,6 +90,4 @@ Temporary variables and flags from Oak's Nuzlocke/Soul-Link questions need to be
 
 ### Nickname Enforcement
 
-- Require nickname entry on all captures under Nuzlocke rules
-- Block empty name submissions
-- Apply to both wild captures and in-game trades
+- Doesn't yet apply to trades or in game gifts like your starter, only wild pokemon
