@@ -284,6 +284,9 @@ Goal: Coordinate resets between Soul-Link partners
 
 ### Union Room Architecture
 - **Map**: `MAP_UNION_ROOM` with 9 object events (receptionist + 8 player slots)
+- **Wireless capacity**: Supports up to 40 connected players (GBA link limitation)
+  - First 8 players: Visible as NPCs in room
+  - Players 9-40: Accessible via menu system (Phase 2+)
 - **Elevation**: All objects, warps, and triggers use elevation 0 for proper collision
 - **Coord triggers**: 15 triggers total (3×3 for exit prompts, 3×3 for flag resets, 9 for warps)
 - **Warp system**: Three-tile-wide door using coord triggers (not map warp events) for reliable behavior
