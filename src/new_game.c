@@ -33,6 +33,7 @@
 // For Nuzlocke Flags/Vars
 #include "constants/flags.h"
 #include "constants/vars.h"
+#include "soul_link.h"
 
 // this file's functions
 static void ResetMiniGamesResults(void);
@@ -157,7 +158,20 @@ void NewGameInitData(void)
     ResetMiniGamesResults();
     ClearMysteryGift();
     SetAllRenewableItemFlags();
-    WarpToPlayersRoom();
+    
+    // Check if Soul-Link is enabled before warping
+    if (soulLinkActive == 1)
+    {
+        // Warp to Union Room instead of bedroom
+        SetWarpDestination(MAP_GROUP(MAP_UNION_ROOM), MAP_NUM(MAP_UNION_ROOM), -1, 5, 7);
+        WarpIntoMap();
+    }
+    else
+    {
+        // Normal warp to bedroom
+        WarpToPlayersRoom();
+    }
+    
     RunScriptImmediately(EventScript_ResetAllMapFlags);
     StringCopy(gSaveBlock1Ptr->rivalName, rivalName);
     ResetTrainerTowerResults();
@@ -175,12 +189,14 @@ void NuzlockeResetRun(void)
     bool8 randomizerEnabled;
     u16 nuzlockeActive;
     u16 soulLinkActive;
+    u32 soulLinkPartnerId;
     u16 i;
 
     // ===== PRESERVE CHALLENGE MODE SETTINGS BEFORE WIPE =====
     randomizerEnabled = FlagGet(FLAG_WILD_RANDOMIZER_ENABLED);
     nuzlockeActive = VarGet(VAR_NUZLOCKE_ACTIVE);
     soulLinkActive = VarGet(VAR_SOUL_LINK_ACTIVE);
+    soulLinkPartnerId = VarGet(VAR_SOUL_LINK_PARTNER_ID);  // Preserve partner ID
 
     StringCopy(rivalName, gSaveBlock1Ptr->rivalName);
     gDifferentSaveFile = TRUE;
@@ -220,7 +236,8 @@ void NuzlockeResetRun(void)
     ClearMysteryGift();
     SetAllRenewableItemFlags();
     
-    // DON'T call WarpToPlayersRoom() - let the script handle the warp
+    // Always warp to bedroom on reset (not Union Room, even if paired)
+    WarpToPlayersRoom();
     
     RunScriptImmediately(EventScript_ResetAllMapFlags);
     StringCopy(gSaveBlock1Ptr->rivalName, rivalName);
@@ -230,7 +247,18 @@ void NuzlockeResetRun(void)
     if (randomizerEnabled)
         FlagSet(FLAG_WILD_RANDOMIZER_ENABLED);
     VarSet(VAR_NUZLOCKE_ACTIVE, nuzlockeActive);
-    VarSet(VAR_SOUL_LINK_ACTIVE, soulLinkActive);
+    
+    // Handle Soul-Link state on reset
+    if (soulLinkActive == 2)  // Was paired
+    {
+        VarSet(VAR_SOUL_LINK_ACTIVE, 2);  // Keep paired status
+        VarSet(VAR_SOUL_LINK_PARTNER_ID, soulLinkPartnerId);  // Keep partner ID
+    }
+    else
+    {
+        VarSet(VAR_SOUL_LINK_ACTIVE, soulLinkActive);  // Restore whatever it was
+        VarSet(VAR_SOUL_LINK_PARTNER_ID, 0);  // Clear partner ID
+    }
     
     // Clear temp flag so starters get re-randomized
     FlagClear(FLAG_TEMP_1);

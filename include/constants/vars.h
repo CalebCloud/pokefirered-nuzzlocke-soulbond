@@ -197,7 +197,7 @@
 #define VAR_0x408F                 0x408F
 #define VAR_NUZLOCKE_ACTIVE        0x4090
 #define VAR_SOUL_LINK_ACTIVE       0x4091
-#define VAR_0x4092                 0x4092
+#define VAR_SOUL_LINK_PARTNER_ID   0x4092
 #define VAR_0x4093                 0x4093
 #define VAR_0x4094                 0x4094
 #define VAR_0x4095                 0x4095

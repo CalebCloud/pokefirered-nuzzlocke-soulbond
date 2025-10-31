@@ -23,39 +23,36 @@ PalletTown_PlayersHouse_2F_FirstWarpIn::
 PalletTown_PlayersHouse_2F_EventScript_NES::
 	lockall
 	
-	@ Check all three flags: Nuzlocke, Soul Link, and Randomizer
-	@ We'll build a composite message based on what's enabled
-	
-	@ First check if Nuzlocke is on
+	@ Check Nuzlocke
 	goto_if_eq VAR_NUZLOCKE_ACTIVE, 1, PalletTown_PlayersHouse_2F_CheckSoulAndRandom
 	
-	@ Nuzlocke is OFF, check if Soul Link is on (edge case, but handle it)
-	goto_if_eq VAR_SOUL_LINK_ACTIVE, 1, PalletTown_PlayersHouse_2F_CheckRandomOnly_SoulOn
+	@ Nuzlocke OFF, check Soul Link (look for PAIRED, not searching)
+	goto_if_eq VAR_SOUL_LINK_ACTIVE, 2, PalletTown_PlayersHouse_2F_CheckRandomOnly_SoulOn
 	
-	@ Both Nuzlocke and Soul Link are OFF, check randomizer only
+	@ Both OFF, check randomizer only
 	checkflag FLAG_WILD_RANDOMIZER_ENABLED
 	goto_if 1, PalletTown_PlayersHouse_2F_EventScript_NES_RandomOnly
 	
-	@ All three are OFF
+	@ All OFF
 	goto PalletTown_PlayersHouse_2F_EventScript_NES_AllOff
 
 PalletTown_PlayersHouse_2F_CheckSoulAndRandom:
-	@ Nuzlocke is ON, check Soul Link
-	goto_if_eq VAR_SOUL_LINK_ACTIVE, 1, PalletTown_PlayersHouse_2F_CheckRandom_BothOn
+	@ Nuzlocke ON, check Soul Link (look for PAIRED)
+	goto_if_eq VAR_SOUL_LINK_ACTIVE, 2, PalletTown_PlayersHouse_2F_CheckRandom_BothOn
 	
 	@ Nuzlocke ON, Soul Link OFF, check randomizer
 	checkflag FLAG_WILD_RANDOMIZER_ENABLED
 	goto_if 1, PalletTown_PlayersHouse_2F_EventScript_NES_NuzRandom
 	
-	@ Only Nuzlocke is ON
+	@ Only Nuzlocke ON
 	goto PalletTown_PlayersHouse_2F_EventScript_NES_NuzOnly
 
 PalletTown_PlayersHouse_2F_CheckRandom_BothOn:
-	@ Both Nuzlocke and Soul Link are ON, check randomizer
+	@ Both ON, check randomizer
 	checkflag FLAG_WILD_RANDOMIZER_ENABLED
 	goto_if 1, PalletTown_PlayersHouse_2F_EventScript_NES_AllThree
 	
-	@ Nuzlocke + Soul Link only (no randomizer)
+	@ Nuzlocke + Soul Link only
 	goto PalletTown_PlayersHouse_2F_EventScript_NES_NuzSoul
 
 PalletTown_PlayersHouse_2F_CheckRandomOnly_SoulOn:
@@ -63,7 +60,7 @@ PalletTown_PlayersHouse_2F_CheckRandomOnly_SoulOn:
 	checkflag FLAG_WILD_RANDOMIZER_ENABLED
 	goto_if 1, PalletTown_PlayersHouse_2F_EventScript_NES_SoulRandom
 	
-	@ Only Soul Link is ON
+	@ Only Soul Link ON
 	goto PalletTown_PlayersHouse_2F_EventScript_NES_SoulOnly
 
 @ ===== MESSAGE DISPLAY SCRIPTS =====
